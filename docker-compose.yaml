@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:17.3-alpine
+    container_name: apollo_pg
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=apollo
+      - POSTGRES_USER=apollo_user
+      - POSTGRES_DB=apollo_db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U apollo_user -d apollo_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - apollo_network
+
+volumes:
+  pg_data:
+
+networks:
+  apollo_network:

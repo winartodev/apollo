@@ -1,0 +1,23 @@
+app:
+  name:
+  port:
+    http:
+database:
+  driver:
+  host:
+  port:
+  name:
+  username:
+  password:
+  sslMode:
+  defaultMaxConn:
+  defaultIdleConn:
+  connMaxLifetime: #in minutes
+  connMaxIdleTime: #in minutes
+auth:
+  apiKey:
+  jwt:
+    accessToken:
+      secretKey:
+    refreshToken:
+      secretKey:

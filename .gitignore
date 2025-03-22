@@ -1,0 +1,70 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# env file
+/core/files/*.yaml
+.env
+
+# GoLand IDE specific files
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Go modules directory
+**/go.sum
+
+# Binaries and packages
+/bin/
+/pkg/
+
+# Logs and databases
+*.log
+*.sqlite
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Editor-specific files
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Custom project-specific files
+/config/
+/tmp/
+/build/
+/dist/
+
+# Ignore local development files
+local.env
+local.yaml
+local.json
+
+# Ignore generated files
+/generated/
+/artifacts/
+
+# Ignore test output
+/test-results/
+/coverage/
