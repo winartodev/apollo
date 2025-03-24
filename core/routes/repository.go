@@ -2,6 +2,7 @@ package routes
 
 import (
 	"database/sql"
+	userRepo "github.com/winartodev/apollo/modules/user/repositories"
 )
 
 type RepositoryDependency struct {
@@ -9,8 +10,13 @@ type RepositoryDependency struct {
 }
 
 type Repository struct {
+	UserRepository userRepo.UserRepositoryItf
 }
 
 func NewRepository(dependency RepositoryDependency) *Repository {
-	return &Repository{}
+	newUserRepository := userRepo.NewUserRepository(dependency.DB)
+
+	return &Repository{
+		UserRepository: newUserRepository,
+	}
 }

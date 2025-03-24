@@ -44,10 +44,15 @@ func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interfac
 }
 
 func FailedResponse(c *fiber.Ctx, statusCode int, message string, err error) error {
+	var e string
+	if err != nil {
+		e = err.Error()
+	}
+
 	return c.Status(statusCode).JSON(Response{
 		Status:  statusFailed,
 		Message: message,
-		Error:   err.Error(),
+		Error:   e,
 	})
 }
 func generateLink(link string, page int64, limit int64) string {

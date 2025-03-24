@@ -57,7 +57,7 @@ func (am *AutoMigration) Start() error {
 		return nil
 	}
 
-	if isMigrationNoChange(err) {
+	if isErrorNoChange(err) {
 		log.Printf("No migrations to run. Database is already at the latest version.")
 		return nil
 	}
