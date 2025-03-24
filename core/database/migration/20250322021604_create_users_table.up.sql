@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    uuid VARCHAR(255) UNIQUE,
-    email VARCHAR(255) UNIQUE,
-    phone_number VARCHAR(16) UNIQUE,
-    username VARCHAR(100) UNIQUE,
+    uuid VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone_number VARCHAR(16) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL UNIQUE,
     first_name VARCHAR(50) DEFAULT NULL,
     last_name VARCHAR(50) DEFAULT NULL,
     profile_picture VARCHAR(50) DEFAULT NULL,

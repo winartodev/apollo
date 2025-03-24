@@ -17,13 +17,13 @@ var (
 )
 
 func isNonNilAndNotExpectedMigrationError(err error) bool {
-	return err != nil && isNoMigration(err) && isMigrationNoChange(err)
+	return err != nil && isErrorNoMigration(err) && isErrorNoChange(err)
 }
 
-func isMigrationNoChange(err error) bool {
+func isErrorNoChange(err error) bool {
 	return err != nil && errors.Is(err, migrate.ErrNoChange)
 }
 
-func isNoMigration(err error) bool {
+func isErrorNoMigration(err error) bool {
 	return err != nil && errors.Is(err, migrate.ErrNilVersion)
 }

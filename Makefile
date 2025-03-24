@@ -1,6 +1,15 @@
 run-http:
 	go run cmd/http.go
 
+download:
+	go mod download
+
+test:
+	go test -v ./...
+
+test-cover:
+	go test -v -cover -race ./...
+
 compose-up:
 	docker-compose up -d
 

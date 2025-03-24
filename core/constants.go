@@ -1,5 +1,7 @@
 package core
 
+import "errors"
+
 const (
 	API = "/api"
 	V1  = "/v1"
@@ -17,4 +19,8 @@ const (
 	MaxLimit      int64 = 100
 	DefaultSort         = "asc"
 	DefaultOrder        = "id"
+)
+
+var (
+	ErrRefreshTokenExists = errors.New("refresh token already exists")
 )
