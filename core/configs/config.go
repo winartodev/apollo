@@ -5,6 +5,7 @@ import (
 	"github.com/winartodev/apollo/core/helpers"
 	"log"
 	"os"
+	"strconv"
 )
 
 const (
@@ -33,6 +34,18 @@ type RefreshToken struct {
 	SecretKey string `yaml:"secretKey"`
 }
 
+type SMTP struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Sender   string `yaml:"sender"`
+	Password string `yaml:"password"`
+}
+type Twilio struct {
+	AccountSid string `yaml:"sid"`
+	AuthToken  string `yaml:"authToken"`
+	PhoneNum   string `yaml:"phoneNumber"`
+}
+
 type Config struct {
 	App struct {
 		Name string `yaml:"name"`
@@ -42,8 +55,11 @@ type Config struct {
 	} `yaml:"app"`
 
 	Database Database `yaml:"database"`
+	Redis    Redis    `yaml:"redis"`
 
-	Auth Auth `yaml:"auth"`
+	Auth   Auth   `yaml:"auth"`
+	SMTP   SMTP   `yaml:"smtp"`
+	Twilio Twilio `yaml:"twilio"`
 }
 
 func NewConfig() (*Config, error) {
@@ -68,20 +84,48 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	err = os.Setenv(core.JwtAccessTokenSecretKey, config.Auth.JWT.AccessToken.SecretKey)
-	if err != nil {
-		return nil, err
-	}
-
-	err = os.Setenv(core.JwtRefreshTokenSecretKey, config.Auth.JWT.RefreshToken.SecretKey)
-	if err != nil {
-		return nil, err
-	}
-
-	err = os.Setenv(core.JoblessApiKey, config.Auth.APIKey)
-	if err != nil {
+	if err = SaveToEnv(config); err != nil {
 		return nil, err
 	}
 
 	return config, nil
+}
+
+func SaveToEnv(config *Config) (err error) {
+	err = os.Setenv(core.JwtAccessTokenSecretKey, config.Auth.JWT.AccessToken.SecretKey)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(core.JwtRefreshTokenSecretKey, config.Auth.JWT.RefreshToken.SecretKey)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(core.ApolloAPIKey, config.Auth.APIKey)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(core.EnvSMTPHost, config.SMTP.Host)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(core.EnvSMTPPort, strconv.Itoa(config.SMTP.Port))
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(core.EnvSMTPSender, config.SMTP.Sender)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(core.EnvSMTPPassword, config.SMTP.Password)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

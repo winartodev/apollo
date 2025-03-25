@@ -36,11 +36,6 @@ func NewUserController(controller UserController) UserControllerItf {
 }
 
 func (uc *UserController) CreateUser(ctx context.Context, data userEntity.User) (id *int64, err error) {
-	err = uc.ValidateUserIsExists(ctx, &data)
-	if err != nil {
-		return nil, err
-	}
-
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
 		return nil, err

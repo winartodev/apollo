@@ -6,8 +6,9 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	pg "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/winartodev/apollo/core"
+	"github.com/winartodev/apollo/core/helpers"
 	"log"
-	"path/filepath"
 )
 
 const (
@@ -133,12 +134,17 @@ func (am *AutoMigration) getSchemaMigration() (*SchemaMigration, error) {
 }
 
 func generateSourceURL() (*string, error) {
-	filePath, err := filepath.Abs(migrationsDir)
+	filePath, err := helpers.GetCompletePath(migrationsDir)
 	if err != nil {
 		return nil, errorInvalidPath
 	}
 
-	completePath := fmt.Sprintf("file://%s", filePath)
+	var completePath string
+	if helpers.CurrentOS(core.OSWindows) {
+		completePath = fmt.Sprintf("file:%s", filePath)
+	} else {
+		completePath = fmt.Sprintf("file://%s", filePath)
+	}
 
 	return &completePath, nil
 }

@@ -1,3 +1,6 @@
+MIGRATION_EXT=sql
+MIGRATION_PATH=core/database/migration/
+
 run-http:
 	go run cmd/http.go
 

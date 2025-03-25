@@ -11,7 +11,12 @@ const (
 
 	JwtAccessTokenSecretKey  = "JWT_ACCESS_TOKEN_SECRET_KEY"
 	JwtRefreshTokenSecretKey = "JWT_REFRESH_TOKEN_SECRET_KEY"
-	JoblessApiKey            = "JOBLESS_API_KEY"
+	ApolloAPIKey             = "APOLLO_API_KEY"
+
+	EnvSMTPHost     = "SMTP_HOST"
+	EnvSMTPPort     = "SMTP_PORT"
+	EnvSMTPSender   = "SMTP_SENDER"
+	EnvSMTPPassword = "SMTP_PASSWORD"
 
 	DefaultOffset int64 = 0
 	DefaultPage   int64 = 1
@@ -19,6 +24,8 @@ const (
 	MaxLimit      int64 = 100
 	DefaultSort         = "asc"
 	DefaultOrder        = "id"
+
+	OSWindows = "windows"
 )
 
 var (

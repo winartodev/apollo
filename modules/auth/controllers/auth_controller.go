@@ -20,12 +20,14 @@ type AuthControllerItf interface {
 }
 
 type AuthController struct {
-	UserController userController.UserControllerItf
+	VerificationController VerificationControllerItf
+	UserController         userController.UserControllerItf
 }
 
 func NewAuthController(controller AuthController) AuthControllerItf {
 	return &AuthController{
-		UserController: controller.UserController,
+		VerificationController: controller.VerificationController,
+		UserController:         controller.UserController,
 	}
 }
 
@@ -74,12 +76,43 @@ func (ac *AuthController) SignIn(ctx context.Context, data *authEntity.SignInReq
 }
 
 func (ac *AuthController) SignUp(ctx context.Context, data *authEntity.SignUpRequest) (success bool, err error) {
+	newPhone, err := helpers.FormatIndonesianPhoneNumber(data.PhoneNumber)
+	if err != nil {
+		return false, err
+	}
+
 	user := userEntity.User{
 		Email:       data.Email,
-		PhoneNumber: data.PhoneNumber,
+		PhoneNumber: newPhone,
 		Username:    data.Username,
 		Password:    &data.Password,
 	}
+
+	err = ac.UserController.ValidateUserIsExists(ctx, &user)
+	if err != nil {
+		return false, err
+	}
+
+	otpPhone, err := ac.VerificationController.GetOTP(ctx, authEntity.VerificationPhone, user.PhoneNumber)
+	if err != nil {
+		return false, err
+	}
+
+	otpEmail, err := ac.VerificationController.GetOTP(ctx, authEntity.VerificationEmail, user.Email)
+	if err != nil {
+		return false, err
+	}
+
+	if otpPhone == nil || !otpPhone.IsVerified {
+		return false, errors.New("phone number is not verified")
+	}
+
+	if otpEmail == nil || !otpEmail.IsVerified {
+		return false, errors.New("email is not verified")
+	}
+
+	user.IsEmailVerified = otpEmail.IsVerified
+	user.IsPhoneVerified = otpPhone.IsVerified
 
 	id, err := ac.UserController.CreateUser(ctx, user)
 	if err != nil {
@@ -88,6 +121,16 @@ func (ac *AuthController) SignUp(ctx context.Context, data *authEntity.SignUpReq
 
 	if id == nil || *id == 0 {
 		return false, errors.New("user can't created")
+	}
+
+	err = ac.VerificationController.DeleteOTP(ctx, authEntity.VerificationPhone, user.PhoneNumber)
+	if err != nil && err != ErrorOTPDataEmpty {
+		return false, err
+	}
+
+	err = ac.VerificationController.DeleteOTP(ctx, authEntity.VerificationEmail, user.Email)
+	if err != nil && err != ErrorOTPDataEmpty {
+		return false, err
 	}
 
 	return true, nil

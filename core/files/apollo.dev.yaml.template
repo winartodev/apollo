@@ -14,6 +14,23 @@ database:
   defaultIdleConn:
   connMaxLifetime: #in minutes
   connMaxIdleTime: #in minutes
+redis:
+  host:
+  port:
+  name:
+  password:
+smtp:
+  host:
+  port:
+  sender:
+  password:
+twilio:
+  sid:
+  authToken:
+twilio:
+  sid:
+  authToken:
+  phoneNumber:
 auth:
   apiKey:
   jwt:

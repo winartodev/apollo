@@ -2,6 +2,7 @@ services:
   postgres:
     image: postgres:17.3-alpine
     container_name: apollo_pg
+    restart: always
     ports:
       - "5432:5432"
     volumes:
@@ -18,8 +19,25 @@ services:
     networks:
       - apollo_network
 
+  redis:
+    image: redis:5-alpine
+    container_name: apollo_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    networks:
+      - apollo_network
+
 volumes:
   pg_data:
+  redis_data:
 
 networks:
   apollo_network:
