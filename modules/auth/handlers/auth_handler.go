@@ -8,6 +8,7 @@ import (
 	"github.com/winartodev/apollo/core/middlewares"
 	"github.com/winartodev/apollo/core/responses"
 	authController "github.com/winartodev/apollo/modules/auth/controllers"
+	"github.com/winartodev/apollo/modules/auth/emums"
 	authEntity "github.com/winartodev/apollo/modules/auth/entities"
 )
 
@@ -99,7 +100,7 @@ func (h *AuthHandler) GenerateEmailOTP(ctx *fiber.Ctx) error {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Invalid email address", nil)
 	}
 
-	err := h.VerificationController.CreateOTP(context, authEntity.VerificationEmail, email)
+	err := h.VerificationController.CreateOTP(context, emums.VerificationEmail, email)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
@@ -116,7 +117,7 @@ func (h *AuthHandler) ValidateEmailOTP(ctx *fiber.Ctx) error {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Failed Validate OTP", nil)
 	}
 
-	err := h.VerificationController.VerifyOTP(context, authEntity.VerificationEmail, email, otp)
+	err := h.VerificationController.VerifyOTP(context, emums.VerificationEmail, email, otp)
 	if err != nil && !errors.Is(err, authController.ErrorOTPAlreadyVerified) {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
@@ -137,7 +138,7 @@ func (h *AuthHandler) ResendEmailOTP(ctx *fiber.Ctx) error {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Failed Resend OTP", nil)
 	}
 
-	err := h.VerificationController.ResendOTP(context, authEntity.VerificationEmail, email)
+	err := h.VerificationController.ResendOTP(context, emums.VerificationEmail, email)
 	if err != nil && !errors.Is(err, authController.ErrorOTPAlreadyVerified) {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
@@ -163,7 +164,7 @@ func (h *AuthHandler) GeneratePhoneOTP(ctx *fiber.Ctx) error {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Invalid phone number", nil)
 	}
 
-	err = h.VerificationController.CreateOTP(context, authEntity.VerificationPhone, newPhone)
+	err = h.VerificationController.CreateOTP(context, emums.VerificationPhone, newPhone)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
@@ -185,7 +186,7 @@ func (h *AuthHandler) ValidatePhoneOTP(ctx *fiber.Ctx) error {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Invalid phone number", nil)
 	}
 
-	err = h.VerificationController.VerifyOTP(context, authEntity.VerificationPhone, newPhone, otp)
+	err = h.VerificationController.VerifyOTP(context, emums.VerificationPhone, newPhone, otp)
 	if err != nil && !errors.Is(err, authController.ErrorOTPAlreadyVerified) {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
@@ -211,7 +212,7 @@ func (h *AuthHandler) ResendPhoneOTP(ctx *fiber.Ctx) error {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Invalid phone number", nil)
 	}
 
-	err = h.VerificationController.ResendOTP(context, authEntity.VerificationPhone, newPhone)
+	err = h.VerificationController.ResendOTP(context, emums.VerificationPhone, newPhone)
 	if err != nil && !errors.Is(err, authController.ErrorOTPAlreadyVerified) {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}

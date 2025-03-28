@@ -1,4 +1,4 @@
-package entities
+package emums
 
 const (
 	VerificationEmail = iota + 1

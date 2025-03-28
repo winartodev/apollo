@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/winartodev/apollo/core/configs"
 	"github.com/winartodev/apollo/core/helpers"
+	authEnum "github.com/winartodev/apollo/modules/auth/emums"
 	authEntity "github.com/winartodev/apollo/modules/auth/entities"
 	authRepo "github.com/winartodev/apollo/modules/auth/repositories"
 	"time"
@@ -77,9 +78,9 @@ func (vc *VerificationController) GenerateAndStoreOTP(ctx context.Context, verif
 	}
 
 	switch verificationType {
-	case authEntity.VerificationEmail:
+	case authEnum.VerificationEmail:
 		return vc.handleSendEmailOTP(ctx, data)
-	case authEntity.VerificationPhone:
+	case authEnum.VerificationPhone:
 		return vc.handleSendPhoneOTP(ctx, data)
 	default:
 		return nil
@@ -141,9 +142,9 @@ func (vc *VerificationController) handleSendPhoneOTP(ctx context.Context, data a
 
 func (vc *VerificationController) GetOTP(ctx context.Context, verificationType int, value string) (data *authEntity.OTPData, err error) {
 	switch verificationType {
-	case authEntity.VerificationEmail:
+	case authEnum.VerificationEmail:
 		return vc.VerificationRepository.GetEmailOTPRedis(ctx, value)
-	case authEntity.VerificationPhone:
+	case authEnum.VerificationPhone:
 		return vc.VerificationRepository.GetPhoneOTPRedis(ctx, value)
 	default:
 		return nil, errorInvalidVerificationType
@@ -191,9 +192,9 @@ func (vc *VerificationController) VerifyOTP(ctx context.Context, verificationTyp
 	ttl := defaultTTL
 
 	switch verificationType {
-	case authEntity.VerificationEmail:
+	case authEnum.VerificationEmail:
 		return vc.VerificationRepository.SetEmailOTPRedis(ctx, value, *data, &ttl)
-	case authEntity.VerificationPhone:
+	case authEnum.VerificationPhone:
 		return vc.VerificationRepository.SetPhoneOTPRedis(ctx, value, *data, &ttl)
 	}
 
@@ -266,9 +267,9 @@ func (vc *VerificationController) DeleteOTP(ctx context.Context, verificationTyp
 	}
 
 	switch verificationType {
-	case authEntity.VerificationEmail:
+	case authEnum.VerificationEmail:
 		return vc.VerificationRepository.DeleteEmailOTPRedis(ctx, value)
-	case authEntity.VerificationPhone:
+	case authEnum.VerificationPhone:
 		return vc.VerificationRepository.DeletePhoneOTPRedis(ctx, value)
 	default:
 		return errorInvalidVerificationType
