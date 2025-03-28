@@ -22,7 +22,8 @@ func NewHandler(dependency HandlerDependency) *Handler {
 	controller := dependency.Controller
 
 	newAuthHandler := authHandler.NewAuthHandler(authHandler.AuthHandler{
-		AuthController: controller.AuthController,
+		VerificationController: controller.VerificationController,
+		AuthController:         controller.AuthController,
 	})
 
 	newUserHandler := userHandler.NewUserHandler(userHandler.UserHandler{

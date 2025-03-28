@@ -48,13 +48,13 @@ func (d *Database) NewConnection() (*sql.DB, error) {
 }
 
 func CloseDB(db *sql.DB) error {
-	if err := db.Close(); err != nil {
-		return errors.New(fmt.Sprintf(errorFailedCloseDatabase, err))
-	}
-
 	stats := db.Stats()
 	if stats.OpenConnections > 0 {
 		return errors.New(fmt.Sprintf(errorDatabaseHasOpenConnections, stats.OpenConnections))
+	}
+
+	if err := db.Close(); err != nil {
+		return errors.New(fmt.Sprintf(errorFailedCloseDatabase, err))
 	}
 
 	return nil

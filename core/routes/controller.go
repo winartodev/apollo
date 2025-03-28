@@ -1,17 +1,21 @@
 package routes
 
 import (
+	"github.com/winartodev/apollo/core/configs"
 	authController "github.com/winartodev/apollo/modules/auth/controllers"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
 )
 
 type ControllerDependency struct {
+	SMTPClient *configs.SMTPClient
+	Twilio     *configs.TwilioClient
 	Repository *Repository
 }
 
 type Controller struct {
-	UserController userController.UserControllerItf
-	AuthController authController.AuthControllerItf
+	UserController         userController.UserControllerItf
+	VerificationController authController.VerificationControllerItf
+	AuthController         authController.AuthControllerItf
 }
 
 func NewController(dependency ControllerDependency) *Controller {
@@ -21,12 +25,20 @@ func NewController(dependency ControllerDependency) *Controller {
 		UserRepository: repository.UserRepository,
 	})
 
+	newVerificationController := authController.NewVerificationController(authController.VerificationController{
+		SmtpClient:             dependency.SMTPClient,
+		TwilioClient:           dependency.Twilio,
+		VerificationRepository: repository.VerificationRepository,
+	})
+
 	newAuthController := authController.NewAuthController(authController.AuthController{
-		UserController: newUserController,
+		VerificationController: newVerificationController,
+		UserController:         newUserController,
 	})
 
 	return &Controller{
-		UserController: newUserController,
-		AuthController: newAuthController,
+		UserController:         newUserController,
+		VerificationController: newVerificationController,
+		AuthController:         newAuthController,
 	}
 }
