@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/winartodev/apollo/core"
 	"github.com/winartodev/apollo/core/helpers"
+	authEnum "github.com/winartodev/apollo/modules/auth/emums"
 	authEntity "github.com/winartodev/apollo/modules/auth/entities"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
 	userEntity "github.com/winartodev/apollo/modules/user/entities"
@@ -93,12 +94,12 @@ func (ac *AuthController) SignUp(ctx context.Context, data *authEntity.SignUpReq
 		return false, err
 	}
 
-	otpPhone, err := ac.VerificationController.GetOTP(ctx, authEntity.VerificationPhone, user.PhoneNumber)
+	otpPhone, err := ac.VerificationController.GetOTP(ctx, authEnum.VerificationPhone, user.PhoneNumber)
 	if err != nil {
 		return false, err
 	}
 
-	otpEmail, err := ac.VerificationController.GetOTP(ctx, authEntity.VerificationEmail, user.Email)
+	otpEmail, err := ac.VerificationController.GetOTP(ctx, authEnum.VerificationEmail, user.Email)
 	if err != nil {
 		return false, err
 	}
@@ -123,12 +124,12 @@ func (ac *AuthController) SignUp(ctx context.Context, data *authEntity.SignUpReq
 		return false, errors.New("user can't created")
 	}
 
-	err = ac.VerificationController.DeleteOTP(ctx, authEntity.VerificationPhone, user.PhoneNumber)
+	err = ac.VerificationController.DeleteOTP(ctx, authEnum.VerificationPhone, user.PhoneNumber)
 	if err != nil && err != ErrorOTPDataEmpty {
 		return false, err
 	}
 
-	err = ac.VerificationController.DeleteOTP(ctx, authEntity.VerificationEmail, user.Email)
+	err = ac.VerificationController.DeleteOTP(ctx, authEnum.VerificationEmail, user.Email)
 	if err != nil && err != ErrorOTPDataEmpty {
 		return false, err
 	}
