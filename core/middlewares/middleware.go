@@ -1,10 +1,12 @@
 package middlewares
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/responses"
+	userController "github.com/winartodev/apollo/modules/user/controllers"
 	"strings"
 )
 
@@ -14,12 +16,19 @@ const (
 )
 
 var (
-	errorInvalidPublicAccess = errors.New("public resource cannot be accessed due to invalid request")
-	errorInvalidToken        = errors.New("provided token is invalid or expired")
-	errorFailedInstanceJWT   = errors.New("failed to create instance JWT")
+	errorInvalidPublicAccess   = errors.New("public resource cannot be accessed due to invalid request")
+	errorInvalidInternalAccess = errors.New("internal resource cannot be accessed due to invalid request")
+	errorInvalidToken          = errors.New("provided token is invalid or expired")
+	errorFailedInstanceJWT     = errors.New("failed to create instance JWT")
+	errorMissingToken          = errors.New("authentication token is missing or improperly formatted. Expected 'Bearer <token>'")
+	errorUserNotFound          = errors.New("user not found")
 )
 
-func HandlePublicAccess() fiber.Handler {
+type Middleware struct {
+	UserController userController.UserControllerItf
+}
+
+func (m *Middleware) HandlePublicAccess() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		access := getAccessFromPath(c)
 		if access == internal || access == protected {
@@ -28,31 +37,49 @@ func HandlePublicAccess() fiber.Handler {
 
 		var token string
 		if isAuthHeaderExists(c, &token) {
-			jwt, err := helpers.NewJWT()
+			claim, err := verifyAuthHeader(token)
 			if err != nil {
-				return responses.FailedResponse(c, fiber.StatusInternalServerError, "Access Denied", errorFailedInstanceJWT)
+				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", err)
 			}
 
-			claims, isValid, err := jwt.VerifyToken(jwt.AccessToken.SecretKey, token)
+			c.Locals("id", claim.ID)
+			c.Locals("username", claim.Username)
+			c.Locals("email", claim.Email)
+		}
+
+		return c.Next()
+	}
+}
+
+func (m *Middleware) HandleInternalAccess() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		access := getAccessFromPath(c)
+		if access != internal {
+			return responses.FailedResponse(c, fiber.StatusForbidden, "Access Denied", errorInvalidInternalAccess)
+		}
+
+		var token string
+		if isAuthHeaderExists(c, &token) {
+			claim, err := verifyAuthHeader(token)
 			if err != nil {
-				return responses.FailedResponse(c, fiber.StatusInternalServerError, "Authentication Failed", err)
+				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", err)
 			}
 
-			if !isValid {
-				return responses.FailedResponse(c, fiber.StatusInternalServerError, "Authentication Failed", errorInvalidToken)
+			context := c.Context()
+			user, err := m.UserController.GetUserByID(context, claim.ID)
+			if err != nil {
+				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", err)
 			}
 
-			if id, ok := claims["id"].(float64); ok {
-				c.Locals("id", id)
+			if user == nil {
+				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", errorUserNotFound)
 			}
 
-			if username, ok := claims["username"].(string); ok {
-				c.Locals("username", username)
-			}
-
-			if email, ok := claims["email"].(string); ok {
-				c.Locals("email", email)
-			}
+			c.Locals("id", claim.ID)
+			c.Locals("username", claim.Username)
+			c.Locals("email", claim.Email)
+		} else {
+			return responses.FailedResponse(c, fiber.StatusForbidden, "Access Denied", errorMissingToken)
 		}
 
 		return c.Next()
@@ -77,4 +104,33 @@ func getAccessFromPath(ctx *fiber.Ctx) string {
 	}
 
 	return ""
+}
+
+func verifyAuthHeader(token string) (res *helpers.JWTClaims, err error) {
+	jwt, err := helpers.NewJWT()
+	if err != nil {
+		return nil, errorFailedInstanceJWT
+	}
+
+	claims, isValid, err := jwt.VerifyToken(jwt.AccessToken.SecretKey, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isValid {
+		return nil, errorInvalidToken
+	}
+
+	claimByte, err := json.Marshal(claims)
+	if err != nil {
+		return nil, err
+	}
+
+	var claim helpers.JWTClaims
+	err = json.Unmarshal(claimByte, &claim)
+	if err != nil {
+		return nil, err
+	}
+
+	return &claim, nil
 }

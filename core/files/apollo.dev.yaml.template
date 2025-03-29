@@ -27,6 +27,7 @@ smtp:
 twilio:
   sid:
   authToken:
+  phoneNumber:
 twilio:
   sid:
   authToken:
