@@ -47,8 +47,8 @@ func NewAutoMigration(databaseName string, db *sql.DB) (*AutoMigration, error) {
 }
 
 func (am *AutoMigration) Start() error {
-	err := am.migrate.Up()
-	if err == nil {
+	schemaUpErr := am.migrate.Up()
+	if schemaUpErr == nil {
 		schema, err := am.getSchemaMigration()
 		if err != nil {
 			return fmt.Errorf("failed to get schema version after migration error: %w", err)
@@ -58,7 +58,7 @@ func (am *AutoMigration) Start() error {
 		return nil
 	}
 
-	if isErrorNoChange(err) {
+	if isErrorNoChange(schemaUpErr) {
 		log.Printf("No migrations to run. Database is already at the latest version.")
 		return nil
 	}
@@ -69,7 +69,7 @@ func (am *AutoMigration) Start() error {
 		return fmt.Errorf("failed to get schema version after migration error: %w", err)
 	}
 
-	log.Printf("Migration failed. Current schema version: %d, dirty: %v", schema.version, schema.dirty)
+	log.Printf("Migration failed error {%v}.\nCurrent schema version: %d, dirty: %v", schemaUpErr.Error(), schema.version, schema.dirty)
 
 	err = am.Fix(schema.version)
 	if err != nil {
