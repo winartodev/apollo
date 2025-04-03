@@ -12,6 +12,11 @@ import (
 
 var (
 	userNotLoggedIn = errors.New("not logged in")
+
+	apolloInternalUserAccess = &middlewares.InternalAccessConfig{
+		ApplicationSlug:    "apollo-internal",
+		ApplicationService: "test-internal-services-1",
+	}
 )
 
 type UserHandler struct {
@@ -44,7 +49,7 @@ func (h *UserHandler) GetCurrentUser(ctx *fiber.Ctx) error {
 func (h *UserHandler) Register(router fiber.Router) error {
 	v1 := router.Group(core.V1)
 	internal := v1.Group(core.AccessInternal)
-	user := internal.Group("/users", h.HandleInternalAccess())
+	user := internal.Group("/users", h.HandleInternalAccess(apolloInternalUserAccess))
 	user.Get("/me", h.GetCurrentUser)
 
 	return nil

@@ -52,6 +52,7 @@ type Config struct {
 		Port struct {
 			HTTP int `yaml:"http"`
 		} `yaml:"port"`
+		OTPValidation bool `yaml:"otpValidation"`
 	} `yaml:"app"`
 
 	Database Database `yaml:"database"`

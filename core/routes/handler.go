@@ -23,7 +23,8 @@ func NewHandler(dependency HandlerDependency) *Handler {
 	controller := dependency.Controller
 
 	middleware := middlewares.Middleware{
-		UserController: controller.UserController,
+		UserController:     controller.UserController,
+		GuardianController: controller.GuardianController,
 	}
 
 	newAuthHandler := authHandler.NewAuthHandler(authHandler.AuthHandler{

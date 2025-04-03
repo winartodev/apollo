@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/responses"
+	guardianController "github.com/winartodev/apollo/modules/guardian/controllers"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
 	"strings"
 )
@@ -25,7 +26,8 @@ var (
 )
 
 type Middleware struct {
-	UserController userController.UserControllerItf
+	UserController     userController.UserControllerItf
+	GuardianController guardianController.GuardianControllerItf
 }
 
 func (m *Middleware) HandlePublicAccess() fiber.Handler {
@@ -51,7 +53,12 @@ func (m *Middleware) HandlePublicAccess() fiber.Handler {
 	}
 }
 
-func (m *Middleware) HandleInternalAccess() fiber.Handler {
+type InternalAccessConfig struct {
+	ApplicationSlug    string
+	ApplicationService string
+}
+
+func (m *Middleware) HandleInternalAccess(config *InternalAccessConfig) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		access := getAccessFromPath(c)
 		if access != internal {
@@ -73,6 +80,17 @@ func (m *Middleware) HandleInternalAccess() fiber.Handler {
 
 			if user == nil {
 				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", errorUserNotFound)
+			}
+
+			if config != nil {
+				permissionGranted, err := m.GuardianController.CheckUserPermission(context, user.ID, config.ApplicationSlug, config.ApplicationService, c.Method())
+				if err != nil {
+					return responses.FailedResponse(c, fiber.StatusInternalServerError, "Unauthorized", err)
+				}
+
+				if !permissionGranted {
+					return responses.FailedResponse(c, fiber.StatusForbidden, "Unauthorized", errorInvalidInternalAccess)
+				}
 			}
 
 			c.Locals("id", claim.ID)

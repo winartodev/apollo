@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"github.com/go-redis/redis/v8"
+	applicationRepo "github.com/winartodev/apollo/modules/application/repositories"
 	authRepo "github.com/winartodev/apollo/modules/auth/repositories"
 	userRepo "github.com/winartodev/apollo/modules/user/repositories"
 )
@@ -13,18 +14,33 @@ type RepositoryDependency struct {
 }
 
 type Repository struct {
-	UserRepository         userRepo.UserRepositoryItf
-	VerificationRepository authRepo.VerificationRepositoryItf
+	UserRepository                   userRepo.UserRepositoryItf
+	VerificationRepository           authRepo.VerificationRepositoryItf
+	UserApplicationRepository        applicationRepo.UserApplicationRepositoryItf
+	UserApplicationServiceRepository applicationRepo.UserApplicationServiceRepositoryItf
 }
 
 func NewRepository(dependency RepositoryDependency) *Repository {
 	newVerificationRepo := authRepo.NewVerificationRepository(authRepo.VerificationRepository{
 		Redis: dependency.Redis,
 	})
+
 	newUserRepository := userRepo.NewUserRepository(dependency.DB)
 
+	newUserApplicationRepo := applicationRepo.NewUserApplicationRepository(applicationRepo.UserApplicationRepository{
+		DB:    dependency.DB,
+		Redis: dependency.Redis,
+	})
+
+	newUserApplicationServiceRepo := applicationRepo.NewUserApplicationService(applicationRepo.UserApplicationServiceRepository{
+		DB:    dependency.DB,
+		Redis: dependency.Redis,
+	})
+
 	return &Repository{
-		VerificationRepository: newVerificationRepo,
-		UserRepository:         newUserRepository,
+		VerificationRepository:           newVerificationRepo,
+		UserRepository:                   newUserRepository,
+		UserApplicationRepository:        newUserApplicationRepo,
+		UserApplicationServiceRepository: newUserApplicationServiceRepo,
 	}
 }
