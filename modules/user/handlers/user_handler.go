@@ -15,11 +15,13 @@ var (
 )
 
 type UserHandler struct {
+	middlewares.Middleware
 	UserController userControler.UserControllerItf
 }
 
 func NewUserHandler(handler UserHandler) UserHandler {
 	return UserHandler{
+		Middleware:     handler.Middleware,
 		UserController: handler.UserController,
 	}
 }
@@ -41,7 +43,8 @@ func (h *UserHandler) GetCurrentUser(ctx *fiber.Ctx) error {
 
 func (h *UserHandler) Register(router fiber.Router) error {
 	v1 := router.Group(core.V1)
-	user := v1.Group("/users", middlewares.HandlePublicAccess())
+	internal := v1.Group(core.AccessInternal)
+	user := internal.Group("/users", h.HandleInternalAccess())
 	user.Get("/me", h.GetCurrentUser)
 
 	return nil

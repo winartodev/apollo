@@ -71,8 +71,8 @@ func GetFormValue(ctx *fiber.Ctx, key string, required bool) (value string, erro
 }
 
 func GetUserIDFromContext(ctx *fiber.Ctx) (id int64, err error) {
-	if idStr, ok := ctx.Locals("id").(float64); ok {
-		id = int64(idStr)
+	if localID, ok := ctx.Locals("id").(int64); ok {
+		id = localID
 	} else {
 		return 0, errors.New("no user id")
 	}

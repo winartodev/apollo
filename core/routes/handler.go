@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core"
+	"github.com/winartodev/apollo/core/middlewares"
 	authHandler "github.com/winartodev/apollo/modules/auth/handlers"
 	userHandler "github.com/winartodev/apollo/modules/user/handlers"
 	"time"
@@ -21,12 +22,18 @@ type Handler struct {
 func NewHandler(dependency HandlerDependency) *Handler {
 	controller := dependency.Controller
 
+	middleware := middlewares.Middleware{
+		UserController: controller.UserController,
+	}
+
 	newAuthHandler := authHandler.NewAuthHandler(authHandler.AuthHandler{
+		Middleware:             middleware,
 		VerificationController: controller.VerificationController,
 		AuthController:         controller.AuthController,
 	})
 
 	newUserHandler := userHandler.NewUserHandler(userHandler.UserHandler{
+		Middleware:     middleware,
 		UserController: controller.UserController,
 	})
 

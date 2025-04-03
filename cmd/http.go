@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/winartodev/apollo/core/configs"
 	"github.com/winartodev/apollo/core/routes"
 	"log"
@@ -69,6 +70,8 @@ func main() {
 	app := fiber.New(fiber.Config{
 		AppName: cfg.App.Name,
 	})
+
+	app.Use(cors.New())
 
 	repository := routes.NewRepository(routes.RepositoryDependency{DB: db, Redis: redisClient})
 	controller := routes.NewController(routes.ControllerDependency{

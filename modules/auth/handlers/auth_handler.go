@@ -13,12 +13,14 @@ import (
 )
 
 type AuthHandler struct {
+	middlewares.Middleware
 	VerificationController authController.VerificationControllerItf
 	AuthController         authController.AuthControllerItf
 }
 
 func NewAuthHandler(handler AuthHandler) AuthHandler {
 	return AuthHandler{
+		Middleware:             handler.Middleware,
 		VerificationController: handler.VerificationController,
 		AuthController:         handler.AuthController,
 	}
@@ -243,7 +245,7 @@ func (h *AuthHandler) Register(router fiber.Router) error {
 	otp.Post("/phone/validate", h.ValidatePhoneOTP)
 	otp.Post("/phone/resend", h.ResendPhoneOTP)
 
-	userAuth := v1.Group("/users/auth", middlewares.HandlePublicAccess())
+	userAuth := v1.Group("/users/auth", h.HandlePublicAccess())
 	userAuth.Post("/sign-out", h.SignOut)
 
 	return nil
