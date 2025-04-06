@@ -11,14 +11,13 @@ type ApplicationAccess struct {
 }
 
 type Application struct {
-	ID          int64                `json:"id"`
-	Slug        string               `json:"slug"`
-	Name        string               `json:"name"`
-	Description string               `json:"description,omitempty"`
-	IsActive    bool                 `json:"is_active"`
-	CreatedAt   *time.Time           `json:"created_at,omitempty"`
-	UpdatedAt   *time.Time           `json:"updated_at,omitempty"`
-	Services    []ApplicationService `json:"services,omitempty"`
+	ID          int64      `json:"id"`
+	Slug        string     `json:"slug"`
+	Name        string     `json:"name"`
+	Description string     `json:"description,omitempty"`
+	IsActive    bool       `json:"is_active"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
 type ApplicationService struct {

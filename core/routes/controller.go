@@ -40,11 +40,12 @@ func NewController(dependency ControllerDependency) *Controller {
 	})
 
 	newGuardianController := guardianController.NewGuardianController(guardianController.GuardianController{
+		UserController: newUserController,
 		ApplicationController: applicationController.NewApplicationController(applicationController.ApplicationController{
-			UserController:                   newUserController,
 			UserApplicationRepository:        repository.UserApplicationRepository,
 			UserApplicationServiceRepository: repository.UserApplicationServiceRepository,
 		}),
+		GuardianUserRoleRepo: repository.GuardianUserRoleRepo,
 	})
 
 	return &Controller{

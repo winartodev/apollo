@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/winartodev/apollo/core/enums"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/responses"
 	guardianController "github.com/winartodev/apollo/modules/guardian/controllers"
@@ -54,8 +55,8 @@ func (m *Middleware) HandlePublicAccess() fiber.Handler {
 }
 
 type InternalAccessConfig struct {
-	ApplicationSlug    string
-	ApplicationService string
+	Application        enums.ApplicationEnum
+	ApplicationService enums.ApplicationServiceEnum
 }
 
 func (m *Middleware) HandleInternalAccess(config *InternalAccessConfig) fiber.Handler {
@@ -83,7 +84,7 @@ func (m *Middleware) HandleInternalAccess(config *InternalAccessConfig) fiber.Ha
 			}
 
 			if config != nil {
-				permissionGranted, err := m.GuardianController.CheckUserPermission(context, user.ID, config.ApplicationSlug, config.ApplicationService, c.Method())
+				permissionGranted, err := m.GuardianController.CheckUserPermission(context, user.ID, config.Application, config.ApplicationService, c.Method())
 				if err != nil {
 					return responses.FailedResponse(c, fiber.StatusInternalServerError, "Unauthorized", err)
 				}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core"
+	"github.com/winartodev/apollo/core/enums"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/middlewares"
 	"github.com/winartodev/apollo/core/responses"
@@ -14,8 +15,8 @@ var (
 	userNotLoggedIn = errors.New("not logged in")
 
 	apolloInternalUserAccess = &middlewares.InternalAccessConfig{
-		ApplicationSlug:    "apollo-internal",
-		ApplicationService: "test-internal-services-1",
+		Application:        enums.ApolloInternal,
+		ApplicationService: enums.TestInternalServices1,
 	}
 )
 

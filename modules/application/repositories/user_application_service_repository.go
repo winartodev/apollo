@@ -8,7 +8,8 @@ import (
 )
 
 type UserApplicationServiceRepositoryItf interface {
-	GetApplicationServiceAccess(ctx context.Context, appID int64, userID int64) (res []applicationEntity.UserApplicationServiceResponse, err error)
+	GetApplicationServicesAccessDB(ctx context.Context, userID int64, appID int64) (res []applicationEntity.UserApplicationServiceResponse, err error)
+	GetApplicationServiceAccessDB(ctx context.Context, userID int64, appID int64, applicationServiceSlug string) (res *applicationEntity.UserApplicationServiceResponse, err error)
 }
 
 type UserApplicationServiceRepository struct {
@@ -23,7 +24,7 @@ func NewUserApplicationService(repository UserApplicationServiceRepository) User
 	}
 }
 
-func (r *UserApplicationServiceRepository) GetApplicationServiceAccess(ctx context.Context, appID int64, userID int64) (res []applicationEntity.UserApplicationServiceResponse, err error) {
+func (r *UserApplicationServiceRepository) GetApplicationServicesAccessDB(ctx context.Context, userID int64, appID int64) (res []applicationEntity.UserApplicationServiceResponse, err error) {
 	stmt, err := r.DB.PrepareContext(ctx, GetUserApplicationServices)
 	if err != nil {
 		return nil, err
@@ -56,4 +57,34 @@ func (r *UserApplicationServiceRepository) GetApplicationServiceAccess(ctx conte
 	}
 
 	return res, nil
+}
+
+func (r *UserApplicationServiceRepository) GetApplicationServiceAccessDB(ctx context.Context, userID int64, appID int64, applicationServiceSlug string) (res *applicationEntity.UserApplicationServiceResponse, err error) {
+	stmt, err := r.DB.PrepareContext(ctx, GetUserApplicationServiceBySlugQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+
+	res = &applicationEntity.UserApplicationServiceResponse{}
+	err = stmt.QueryRowContext(ctx, userID, appID, applicationServiceSlug).
+		Scan(
+			&res.UserID,
+			&res.AppID,
+			&res.AppSlug,
+			&res.AppServiceID,
+			&res.AppServiceScope,
+			&res.AppServiceSlug,
+			&res.AppServiceName,
+		)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	return res, err
 }
