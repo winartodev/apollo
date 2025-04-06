@@ -7,29 +7,26 @@ import (
 	coreEnum "github.com/winartodev/apollo/core/enums"
 	applicationController "github.com/winartodev/apollo/modules/application/controllers"
 	guardianEntity "github.com/winartodev/apollo/modules/guardian/entities"
-	guardianRepo "github.com/winartodev/apollo/modules/guardian/repositories"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
 )
 
 type GuardianControllerItf interface {
-	CheckUserPermission(ctx context.Context, userId int64, application coreEnum.ApplicationEnum, applicationService coreEnum.ApplicationServiceEnum, httpMethod string) (permissionGranted bool, err error)
+	CheckUserPermissionToInternalApp(ctx context.Context, userId int64, application coreEnum.ApplicationEnum, applicationService coreEnum.ApplicationServiceEnum, httpMethod string) (permissionGranted bool, err error)
 }
 
 type GuardianController struct {
 	UserController        userController.UserControllerItf
 	ApplicationController applicationController.ApplicationControllerItf
-	GuardianUserRoleRepo  guardianRepo.GuardianUserRoleRepositoryItf
 }
 
 func NewGuardianController(controller GuardianController) GuardianControllerItf {
 	return &GuardianController{
 		UserController:        controller.UserController,
 		ApplicationController: controller.ApplicationController,
-		GuardianUserRoleRepo:  controller.GuardianUserRoleRepo,
 	}
 }
 
-func (c *GuardianController) CheckUserPermission(ctx context.Context, userID int64, application coreEnum.ApplicationEnum, applicationService coreEnum.ApplicationServiceEnum, httpMethod string) (permissionGranted bool, err error) {
+func (c *GuardianController) CheckUserPermissionToInternalApp(ctx context.Context, userID int64, application coreEnum.ApplicationEnum, applicationService coreEnum.ApplicationServiceEnum, httpMethod string) (permissionGranted bool, err error) {
 	// get user data is exists
 	userData, err := c.UserController.GetUserByID(ctx, userID)
 	if err != nil {
@@ -65,17 +62,21 @@ func (c *GuardianController) CheckUserPermission(ctx context.Context, userID int
 	}
 
 	// get user role
-	userRoleData, err := c.GuardianUserRoleRepo.GetRoleByUserID(ctx, userID)
+	userRoleData, err := c.UserController.GetUserRoleByID(ctx, userID)
 	if err != nil {
 		return false, err
 	}
 
 	guardianPermission := guardianEntity.GuardianUserAccessPermission{
 		User: &guardianEntity.GuardianUser{
-			ID:           userData.ID,
-			Email:        userData.Email,
-			PhoneNumber:  userData.PhoneNumber,
-			GuardianRole: userRoleData,
+			ID:          userData.ID,
+			Email:       userData.Email,
+			PhoneNumber: userData.PhoneNumber,
+			GuardianRole: &guardianEntity.GuardianRole{
+				ID:   userRoleData.RoleID,
+				Slug: userRoleData.Slug,
+				Name: userRoleData.Name,
+			},
 		},
 		Application: &guardianEntity.GuardianApplication{
 			ID:       applicationData.ID,

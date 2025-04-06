@@ -87,4 +87,15 @@ const (
 			EXISTS (SELECT 1 FROM users WHERE email = $2) as email_is_exists,
 			EXISTS (SELECT 1 FROM users WHERE phone_number = $3) as phone_number_is_exists
 	`
+
+	GetUserRoleByIDQuery = `
+		SELECT 
+			role.id, 
+			role.slug, 
+			role.name
+		FROM guardian_user_roles as gur 
+		INNER JOIN guardian_roles as role 
+			ON role.id = gur.role_id
+		WHERE gur.user_id = $1
+	`
 )

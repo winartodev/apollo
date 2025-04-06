@@ -5,7 +5,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	applicationRepo "github.com/winartodev/apollo/modules/application/repositories"
 	authRepo "github.com/winartodev/apollo/modules/auth/repositories"
-	guardianRepo "github.com/winartodev/apollo/modules/guardian/repositories"
 	userRepo "github.com/winartodev/apollo/modules/user/repositories"
 )
 
@@ -19,7 +18,6 @@ type Repository struct {
 	VerificationRepository           authRepo.VerificationRepositoryItf
 	UserApplicationRepository        applicationRepo.UserApplicationRepositoryItf
 	UserApplicationServiceRepository applicationRepo.UserApplicationServiceRepositoryItf
-	GuardianUserRoleRepo             guardianRepo.GuardianUserRoleRepositoryItf
 }
 
 func NewRepository(dependency RepositoryDependency) *Repository {
@@ -39,16 +37,10 @@ func NewRepository(dependency RepositoryDependency) *Repository {
 		Redis: dependency.Redis,
 	})
 
-	newGuardianUserRoleRepo := guardianRepo.NewGuardianUserRoleRepository(guardianRepo.GuardianUserRoleRepository{
-		DB:    dependency.DB,
-		Redis: dependency.Redis,
-	})
-
 	return &Repository{
 		VerificationRepository:           newVerificationRepo,
 		UserRepository:                   newUserRepository,
 		UserApplicationRepository:        newUserApplicationRepo,
 		UserApplicationServiceRepository: newUserApplicationServiceRepo,
-		GuardianUserRoleRepo:             newGuardianUserRoleRepo,
 	}
 }

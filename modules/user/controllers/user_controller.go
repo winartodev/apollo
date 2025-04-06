@@ -23,6 +23,7 @@ type UserControllerItf interface {
 	GetPasswordByEmail(ctx context.Context, email string) (res *string, err error)
 	GetRefreshTokenByID(ctx context.Context, id int64) (res *string, err error)
 	ValidateUserIsExists(ctx context.Context, data *userEntity.User) (err error)
+	GetUserRoleByID(ctx context.Context, id int64) (res *userEntity.UserRole, err error)
 }
 
 type UserController struct {
@@ -107,6 +108,10 @@ func (uc *UserController) GetRefreshTokenByID(ctx context.Context, id int64) (re
 	}
 
 	return res, nil
+}
+
+func (uc *UserController) GetUserRoleByID(ctx context.Context, id int64) (res *userEntity.UserRole, err error) {
+	return uc.UserRepository.GetUserRoleByIDDB(ctx, id)
 }
 
 func (uc *UserController) UpdateRefreshToken(ctx context.Context, force bool, id int64, refreshToken *string) (err error) {

@@ -84,7 +84,7 @@ func (m *Middleware) HandleInternalAccess(config *InternalAccessConfig) fiber.Ha
 			}
 
 			if config != nil {
-				permissionGranted, err := m.GuardianController.CheckUserPermission(context, user.ID, config.Application, config.ApplicationService, c.Method())
+				permissionGranted, err := m.GuardianController.CheckUserPermissionToInternalApp(context, user.ID, config.Application, config.ApplicationService, c.Method())
 				if err != nil {
 					return responses.FailedResponse(c, fiber.StatusInternalServerError, "Unauthorized", err)
 				}

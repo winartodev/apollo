@@ -45,7 +45,6 @@ func NewController(dependency ControllerDependency) *Controller {
 			UserApplicationRepository:        repository.UserApplicationRepository,
 			UserApplicationServiceRepository: repository.UserApplicationServiceRepository,
 		}),
-		GuardianUserRoleRepo: repository.GuardianUserRoleRepo,
 	})
 
 	return &Controller{
