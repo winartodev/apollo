@@ -67,32 +67,10 @@ func (c *GuardianController) CheckUserPermissionToInternalApp(ctx context.Contex
 		return false, err
 	}
 
-	guardianPermission := guardianEntity.GuardianUserAccessPermission{
-		User: &guardianEntity.GuardianUser{
-			ID:          userData.ID,
-			Email:       userData.Email,
-			PhoneNumber: userData.PhoneNumber,
-			GuardianRole: &guardianEntity.GuardianRole{
-				ID:   userRoleData.RoleID,
-				Slug: userRoleData.Slug,
-				Name: userRoleData.Name,
-			},
-		},
-		Application: &guardianEntity.GuardianApplication{
-			ID:       applicationData.ID,
-			Slug:     applicationData.Slug,
-			Name:     applicationData.Name,
-			IsActive: applicationData.IsActive,
-			Service: &guardianEntity.GuardianApplicationService{
-				ID:    appService.ID,
-				Scope: appService.Scope,
-				Slug:  appService.Slug,
-				Name:  appService.Name,
-			},
-		},
-	}
+	var guardianAccessPermission guardianEntity.GuardianUserAccessPermission
+	result := guardianAccessPermission.Build(userData, userRoleData, applicationData, appService)
 
-	marshaled, err := json.MarshalIndent(guardianPermission, "", "   ")
+	marshaled, err := json.MarshalIndent(result, "", "   ")
 	if err != nil {
 		return false, err
 	}
