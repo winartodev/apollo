@@ -4,10 +4,10 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core"
-	"github.com/winartodev/apollo/core/enums"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/middlewares"
 	"github.com/winartodev/apollo/core/responses"
+	enums2 "github.com/winartodev/apollo/modules/application/enums"
 	userControler "github.com/winartodev/apollo/modules/user/controllers"
 )
 
@@ -15,8 +15,8 @@ var (
 	userNotLoggedIn = errors.New("not logged in")
 
 	apolloInternalUserAccess = &middlewares.InternalAccessConfig{
-		Application:        enums.ApolloInternal,
-		ApplicationService: enums.TestInternalServices1,
+		Application:        enums2.ApolloInternal,
+		ApplicationService: enums2.TestInternalServices1,
 	}
 )
 

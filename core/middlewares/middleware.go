@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gofiber/fiber/v2"
-	"github.com/winartodev/apollo/core/enums"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/responses"
+	applicationEnum "github.com/winartodev/apollo/modules/application/enums"
 	guardianController "github.com/winartodev/apollo/modules/guardian/controllers"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
 	"strings"
@@ -55,8 +55,8 @@ func (m *Middleware) HandlePublicAccess() fiber.Handler {
 }
 
 type InternalAccessConfig struct {
-	Application        enums.ApplicationEnum
-	ApplicationService enums.ApplicationServiceEnum
+	Application        applicationEnum.ApplicationEnum
+	ApplicationService applicationEnum.ApplicationServiceEnum
 }
 
 func (m *Middleware) HandleInternalAccess(config *InternalAccessConfig) fiber.Handler {

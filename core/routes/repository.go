@@ -5,6 +5,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	applicationRepo "github.com/winartodev/apollo/modules/application/repositories"
 	authRepo "github.com/winartodev/apollo/modules/auth/repositories"
+	guardianRepo "github.com/winartodev/apollo/modules/guardian/repositories"
 	userRepo "github.com/winartodev/apollo/modules/user/repositories"
 )
 
@@ -14,10 +15,12 @@ type RepositoryDependency struct {
 }
 
 type Repository struct {
-	UserRepository                   userRepo.UserRepositoryItf
-	VerificationRepository           authRepo.VerificationRepositoryItf
-	UserApplicationRepository        applicationRepo.UserApplicationRepositoryItf
-	UserApplicationServiceRepository applicationRepo.UserApplicationServiceRepositoryItf
+	ApplicationServiceRepository applicationRepo.ApplicationServiceRepositoryItf
+	UserRepository               userRepo.UserRepositoryItf
+	UserRoleRepository           userRepo.UserRoleRepositoryItf
+	UserApplicationRepository    userRepo.UserApplicationRepositoryItf
+	GuardianPermissionRepository guardianRepo.GuardianPermissionRepositoryItf
+	VerificationRepository       authRepo.VerificationRepositoryItf
 }
 
 func NewRepository(dependency RepositoryDependency) *Repository {
@@ -26,21 +29,28 @@ func NewRepository(dependency RepositoryDependency) *Repository {
 	})
 
 	newUserRepository := userRepo.NewUserRepository(dependency.DB)
-
-	newUserApplicationRepo := applicationRepo.NewUserApplicationRepository(applicationRepo.UserApplicationRepository{
-		DB:    dependency.DB,
-		Redis: dependency.Redis,
+	userUserRoleRepository := userRepo.NewUserRoleRepository(userRepo.UserRoleRepository{
+		DB: dependency.DB,
 	})
 
-	newUserApplicationServiceRepo := applicationRepo.NewUserApplicationService(applicationRepo.UserApplicationServiceRepository{
-		DB:    dependency.DB,
-		Redis: dependency.Redis,
+	newUserApplicationRepo := userRepo.NewUserApplicationRepository(userRepo.UserApplicationRepository{
+		DB: dependency.DB,
+	})
+
+	newGuardianPermissionRepo := guardianRepo.NewGuardianPermissionRepository(guardianRepo.GuardianPermissionRepository{
+		DB: dependency.DB,
+	})
+
+	newApplicationServiceRepo := applicationRepo.NewApplicationServiceRepository(applicationRepo.ApplicationServiceRepository{
+		DB: dependency.DB,
 	})
 
 	return &Repository{
-		VerificationRepository:           newVerificationRepo,
-		UserRepository:                   newUserRepository,
-		UserApplicationRepository:        newUserApplicationRepo,
-		UserApplicationServiceRepository: newUserApplicationServiceRepo,
+		ApplicationServiceRepository: newApplicationServiceRepo,
+		VerificationRepository:       newVerificationRepo,
+		UserRepository:               newUserRepository,
+		UserRoleRepository:           userUserRoleRepository,
+		GuardianPermissionRepository: newGuardianPermissionRepo,
+		UserApplicationRepository:    newUserApplicationRepo,
 	}
 }

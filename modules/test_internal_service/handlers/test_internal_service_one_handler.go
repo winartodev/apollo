@@ -3,25 +3,25 @@ package handlers
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core"
-	"github.com/winartodev/apollo/core/enums"
 	"github.com/winartodev/apollo/core/middlewares"
 	"github.com/winartodev/apollo/core/responses"
+	enums2 "github.com/winartodev/apollo/modules/application/enums"
 )
 
 var (
 	middlewareHandleInternalAccess1 = &middlewares.InternalAccessConfig{
-		Application:        enums.ApolloInternal,
-		ApplicationService: enums.TestInternalServices1,
+		Application:        enums2.ApolloInternal,
+		ApplicationService: enums2.TestInternalServices1,
 	}
 
 	middlewareHandleInternalAccess2 = &middlewares.InternalAccessConfig{
-		Application:        enums.ApolloInternal,
-		ApplicationService: enums.TestInternalServices2,
+		Application:        enums2.ApolloInternal,
+		ApplicationService: enums2.TestInternalServices2,
 	}
 
 	middlewareHandleInternalAccess3 = &middlewares.InternalAccessConfig{
-		Application:        enums.ApolloInternal,
-		ApplicationService: enums.TestInternalServices3,
+		Application:        enums2.ApolloInternal,
+		ApplicationService: enums2.TestInternalServices3,
 	}
 )
 

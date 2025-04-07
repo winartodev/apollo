@@ -31,9 +31,3 @@ type UserUniqueFieldExists struct {
 	IsPhoneExists    bool
 	IsUsernameExists bool
 }
-
-type UserRole struct {
-	RoleID int64  `json:"role_id"`
-	Slug   string `json:"slug"`
-	Name   string `json:"name"`
-}

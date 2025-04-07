@@ -2,66 +2,46 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	applicationEntity "github.com/winartodev/apollo/modules/application/entities"
-	"github.com/winartodev/apollo/modules/application/enums"
+	coreEnum "github.com/winartodev/apollo/modules/application/enums"
 	applicationRepo "github.com/winartodev/apollo/modules/application/repositories"
 )
 
+var (
+	ErrorApplicationServiceInactive = errors.New("application service inactive")
+)
+
 type ApplicationControllerItf interface {
-	GetApplicationAccess(ctx context.Context, userID int64, applicationSlug string) (res *applicationEntity.ApplicationAccess, err error)
-	GetApplicationService(ctx context.Context, userID int64, applicationID int64, appServiceSlug string) (res *applicationEntity.ApplicationService, err error)
+	GetApplicationBySlug(ctx context.Context, slug string) (res *applicationEntity.Application, err error)
+	GetApplicationServiceBySlug(ctx context.Context, slug string) (res *applicationEntity.ApplicationService, err error)
 }
 
 type ApplicationController struct {
-	UserApplicationRepository        applicationRepo.UserApplicationRepositoryItf
-	UserApplicationServiceRepository applicationRepo.UserApplicationServiceRepositoryItf
+	ApplicationServiceRepository applicationRepo.ApplicationServiceRepositoryItf
 }
 
 func NewApplicationController(controller ApplicationController) ApplicationControllerItf {
 	return &ApplicationController{
-		UserApplicationRepository:        controller.UserApplicationRepository,
-		UserApplicationServiceRepository: controller.UserApplicationServiceRepository,
+		ApplicationServiceRepository: controller.ApplicationServiceRepository,
 	}
 }
 
-func (c *ApplicationController) GetApplicationAccess(ctx context.Context, userID int64, applicationSlug string) (res *applicationEntity.ApplicationAccess, err error) {
-	res = &applicationEntity.ApplicationAccess{}
+func (ac *ApplicationController) GetApplicationBySlug(ctx context.Context, slug string) (res *applicationEntity.Application, err error) {
+	return res, err
+}
 
-	userApplication, err := c.UserApplicationRepository.GetUserApplicationByUserIDAndApplicationSlugDB(ctx, userID, applicationSlug)
+func (ac *ApplicationController) GetApplicationServiceBySlug(ctx context.Context, slug string) (res *applicationEntity.ApplicationService, err error) {
+	res, err = ac.ApplicationServiceRepository.GetApplicationServiceBySlugDB(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
 
-	if userApplication != nil {
-		application := applicationEntity.Application{
-			ID:       userApplication.ID,
-			Slug:     userApplication.Slug,
-			Name:     userApplication.Name,
-			IsActive: userApplication.IsActive,
-		}
-
-		res.Applications = append(res.Applications, application)
+	if !res.IsActive {
+		return nil, ErrorApplicationServiceInactive
 	}
 
-	return res, err
-}
+	res.Scope = coreEnum.ApplicationServiceEnum(res.Scope).ToSlug()
 
-func (c *ApplicationController) GetApplicationService(ctx context.Context, userID int64, applicationID int64, appServiceSlug string) (res *applicationEntity.ApplicationService, err error) {
-	appService, err := c.UserApplicationServiceRepository.GetApplicationServiceAccessDB(ctx, userID, applicationID, appServiceSlug)
-	if err != nil {
-		return nil, err
-	}
-
-	if appService == nil {
-		return nil, nil
-	}
-
-	res = &applicationEntity.ApplicationService{
-		ID:    appService.AppServiceID,
-		Slug:  appService.AppServiceSlug,
-		Scope: enums.ApplicationScope(appService.AppServiceScope).ToString(),
-		Name:  appService.AppServiceName,
-	}
-
-	return res, err
+	return res, nil
 }

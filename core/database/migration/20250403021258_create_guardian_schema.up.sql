@@ -19,10 +19,11 @@ CREATE TABLE IF NOT EXISTS guardian_permissions (
 
 CREATE TABLE IF NOT EXISTS guardian_user_roles (
     user_id INT REFERENCES users(id) NOT NULL,
+    application_id INT REFERENCES applications(id) NOT NULL,
     role_id INT REFERENCES guardian_roles(id) NOT NULL,
     created_at BIGINT DEFAULT 0,
     updated_at BIGINT DEFAULT 0,
-    PRIMARY KEY (user_id)
+    PRIMARY KEY (user_id, application_id)
 );
 
 CREATE TABLE IF NOT EXISTS guardian_role_permissions (
@@ -61,8 +62,8 @@ BEGIN
            ('put', 'PUT', 'Update Data', current_epoch_time, current_epoch_time),
            ('delete', 'DELETE', 'Delete Data', current_epoch_time, current_epoch_time);
 
-    INSERT INTO guardian_user_roles (user_id, role_id, created_at, updated_at)
-        VALUES (2,2, current_epoch_time, current_epoch_time);
+    INSERT INTO guardian_user_roles (user_id, application_id, role_id, created_at, updated_at)
+        VALUES (2,2, 2, current_epoch_time, current_epoch_time);
 
     INSERT INTO guardian_role_permissions (role_id, application_service_id, permission_id, created_at, updated_at)
     VALUES (2,1,1, current_epoch_time, current_epoch_time),

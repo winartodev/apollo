@@ -46,19 +46,23 @@ type Twilio struct {
 	PhoneNum   string `yaml:"phoneNumber"`
 }
 
+type OTP struct {
+	Enable bool `yaml:"enable"`
+}
+
 type Config struct {
 	App struct {
 		Name string `yaml:"name"`
 		Port struct {
 			HTTP int `yaml:"http"`
 		} `yaml:"port"`
-		OTPValidation bool `yaml:"otpValidation"`
 	} `yaml:"app"`
 
 	Database Database `yaml:"database"`
 	Redis    Redis    `yaml:"redis"`
 
 	Auth   Auth   `yaml:"auth"`
+	OTP    OTP    `yaml:"otp"`
 	SMTP   SMTP   `yaml:"smtp"`
 	Twilio Twilio `yaml:"twilio"`
 }

@@ -3,30 +3,64 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"github.com/go-redis/redis/v8"
-	"github.com/winartodev/apollo/modules/application/entities"
+	"github.com/winartodev/apollo/modules/user/entities"
+	"time"
 )
 
 type UserApplicationRepositoryItf interface {
+	CreateUserApplicationDB(ctx context.Context, app *entities.UserApplication) (err error)
 	GetUserApplicationsByUserIDDB(ctx context.Context, userID int64) (res []entities.UserApplicationResponse, err error)
 	GetUserApplicationByUserIDAndApplicationSlugDB(ctx context.Context, userID int64, applicationSlug string) (res *entities.UserApplicationResponse, err error)
 }
 
 type UserApplicationRepository struct {
-	DB    *sql.DB
-	Redis *redis.Client
+	DB *sql.DB
 }
 
 func NewUserApplicationRepository(repository UserApplicationRepository) UserApplicationRepositoryItf {
 	return &UserApplicationRepository{
-		DB:    repository.DB,
-		Redis: repository.Redis,
+		DB: repository.DB,
 	}
 }
 
-func (r *UserApplicationRepository) GetUserApplicationsByUserIDDB(ctx context.Context, userID int64) (res []entities.UserApplicationResponse, err error) {
+func (ur *UserApplicationRepository) CreateUserApplicationDB(ctx context.Context, data *entities.UserApplication) (err error) {
+	now := time.Now()
+	createdAtUnix := now.Unix()
+	updatedAtUnix := now.Unix()
 
-	stmt, err := r.DB.PrepareContext(ctx, GetUserApplicationsByUserIDQueryDB)
+	tx, err := ur.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.PrepareContext(ctx, InsertUserApplicationQueryDB)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx,
+		data.UserID,
+		data.ApplicationID,
+		data.CreatedAt,
+		createdAtUnix,
+		updatedAtUnix,
+	)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (ur *UserApplicationRepository) GetUserApplicationsByUserIDDB(ctx context.Context, userID int64) (res []entities.UserApplicationResponse, err error) {
+	stmt, err := ur.DB.PrepareContext(ctx, GetUserApplicationsByUserIDQueryDB)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +93,8 @@ func (r *UserApplicationRepository) GetUserApplicationsByUserIDDB(ctx context.Co
 	return res, err
 }
 
-func (r *UserApplicationRepository) GetUserApplicationByUserIDAndApplicationSlugDB(ctx context.Context, userID int64, applicationSlug string) (res *entities.UserApplicationResponse, err error) {
-	stmt, err := r.DB.PrepareContext(ctx, GetUserApplicationByUserIDAndApplicationSlugQuery)
+func (ur *UserApplicationRepository) GetUserApplicationByUserIDAndApplicationSlugDB(ctx context.Context, userID int64, applicationSlug string) (res *entities.UserApplicationResponse, err error) {
+	stmt, err := ur.DB.PrepareContext(ctx, GetUserApplicationByUserIDAndApplicationSlugQuery)
 	if err != nil {
 		return nil, err
 	}

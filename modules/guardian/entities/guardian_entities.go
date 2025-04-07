@@ -1,7 +1,6 @@
 package entities
 
 import (
-	applicationEntity "github.com/winartodev/apollo/modules/application/entities"
 	userEntity "github.com/winartodev/apollo/modules/user/entities"
 )
 
@@ -10,7 +9,12 @@ type GuardianUserAccessPermission struct {
 	Application *GuardianApplication `json:"application,omitempty"`
 }
 
-func (g *GuardianUserAccessPermission) Build(user *userEntity.User, userRole *userEntity.UserRole, application *applicationEntity.Application, appService *applicationEntity.ApplicationService) GuardianUserAccessPermission {
+func (g *GuardianUserAccessPermission) Build(user *userEntity.User, userRole *userEntity.UserRoleResponse,
+	userApplication *userEntity.UserApplicationResponse, applicationServices *GuardianApplicationService) GuardianUserAccessPermission {
+
+	services := make([]GuardianApplicationService, 0)
+	services = append(services, *applicationServices)
+
 	return GuardianUserAccessPermission{
 		User: &GuardianUser{
 			ID:          user.ID,
@@ -23,16 +27,11 @@ func (g *GuardianUserAccessPermission) Build(user *userEntity.User, userRole *us
 			},
 		},
 		Application: &GuardianApplication{
-			ID:       application.ID,
-			Slug:     application.Slug,
-			Name:     application.Name,
-			IsActive: application.IsActive,
-			Service: &GuardianApplicationService{
-				ID:    appService.ID,
-				Scope: appService.Scope,
-				Slug:  appService.Slug,
-				Name:  appService.Name,
-			},
+			ID:       userApplication.ID,
+			Slug:     userApplication.Slug,
+			Name:     userApplication.Name,
+			IsActive: userApplication.IsActive,
+			Services: services,
 		},
 	}
 }
@@ -44,18 +43,30 @@ type GuardianUser struct {
 	GuardianRole *GuardianRole `json:"role,omitempty"`
 }
 
+type GuardianRole struct {
+	ID   int64  `json:"id"`
+	Slug string `json:"slug"`
+	Name string `json:"name"`
+}
+
 type GuardianApplication struct {
-	ID       int64                       `json:"id"`
-	Slug     string                      `json:"slug"`
-	Name     string                      `json:"name"`
-	IsActive bool                        `json:"is_active"`
-	Service  *GuardianApplicationService `json:"service,omitempty"`
+	ID       int64                        `json:"id"`
+	Slug     string                       `json:"slug"`
+	Name     string                       `json:"name"`
+	IsActive bool                         `json:"is_active"`
+	Services []GuardianApplicationService `json:"service,omitempty"`
 }
 
 type GuardianApplicationService struct {
-	ID          int64    `json:"id"`
-	Scope       string   `json:"scope"`
-	Slug        string   `json:"slug"`
-	Name        string   `json:"name"`
-	Permissions []string `json:"permissions"`
+	ID          int64                `json:"id"`
+	Scope       string               `json:"scope"`
+	Slug        string               `json:"slug"`
+	Name        string               `json:"name"`
+	Permissions []GuardianPermission `json:"permissions,omitempty"`
+}
+
+type GuardianPermission struct {
+	ID   int64  `json:"id"`
+	Slug string `json:"slug"`
+	Name string `json:"name,omitempty"`
 }

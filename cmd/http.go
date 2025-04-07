@@ -75,9 +75,10 @@ func main() {
 
 	repository := routes.NewRepository(routes.RepositoryDependency{DB: db, Redis: redisClient})
 	controller := routes.NewController(routes.ControllerDependency{
-		Repository: repository,
-		SMTPClient: smtpClient,
-		Twilio:     twilioClient})
+		EnableOTPVerification: cfg.OTP.Enable,
+		Repository:            repository,
+		SMTPClient:            smtpClient,
+		Twilio:                twilioClient})
 	handler := routes.NewHandler(routes.HandlerDependency{Controller: controller})
 
 	if err = routes.RegisterHandler(app, handler); err != nil {

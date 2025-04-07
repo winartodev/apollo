@@ -17,7 +17,6 @@ type UserRepositoryItf interface {
 	GetUserByEmailDB(ctx context.Context, email string) (res *entities.User, err error)
 	GetRefreshTokenByIDDB(ctx context.Context, id int64) (res *string, err error)
 	GetUserPasswordByEmailDB(ctx context.Context, email string) (res *string, err error)
-	GetUserRoleByIDDB(ctx context.Context, id int64) (res *entities.UserRole, err error)
 	IsRefreshTokenExistByIDDB(ctx context.Context, id int64) (exists bool, err error)
 	IsUserExistsDB(ctx context.Context, data *entities.UserUniqueField) (res *entities.UserUniqueFieldExists, err error)
 }
@@ -227,31 +226,6 @@ func (ur *UserRepository) IsUserExistsDB(ctx context.Context, data *entities.Use
 	)
 	if err != nil {
 		return nil, err
-	}
-
-	return res, err
-}
-
-func (ur *UserRepository) GetUserRoleByIDDB(ctx context.Context, id int64) (res *entities.UserRole, err error) {
-	stmt, err := ur.DB.PrepareContext(ctx, GetUserRoleByIDQuery)
-	if err != nil {
-		return nil, err
-	}
-
-	res = &entities.UserRole{}
-	defer stmt.Close()
-	err = stmt.QueryRowContext(ctx, id).
-		Scan(
-			&res.RoleID,
-			&res.Slug,
-			&res.Name,
-		)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-
-	if err == sql.ErrNoRows {
-		return nil, nil
 	}
 
 	return res, err

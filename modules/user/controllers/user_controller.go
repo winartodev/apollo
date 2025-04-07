@@ -22,17 +22,22 @@ type UserControllerItf interface {
 	GetUserByEmail(ctx context.Context, email string) (res *userEntity.User, err error)
 	GetPasswordByEmail(ctx context.Context, email string) (res *string, err error)
 	GetRefreshTokenByID(ctx context.Context, id int64) (res *string, err error)
+	GetUserRoleByID(ctx context.Context, id int64, appID int64) (res *userEntity.UserRoleResponse, err error)
+	GetUserApplicationByIDAndApplicationSlug(ctx context.Context, id int64, appSlug string) (res *userEntity.UserApplicationResponse, err error)
 	ValidateUserIsExists(ctx context.Context, data *userEntity.User) (err error)
-	GetUserRoleByID(ctx context.Context, id int64) (res *userEntity.UserRole, err error)
 }
 
 type UserController struct {
-	UserRepository userRepo.UserRepositoryItf
+	UserRepository            userRepo.UserRepositoryItf
+	UserRoleRepository        userRepo.UserRoleRepositoryItf
+	UserApplicationRepository userRepo.UserApplicationRepositoryItf
 }
 
 func NewUserController(controller UserController) UserControllerItf {
 	return &UserController{
-		UserRepository: controller.UserRepository,
+		UserRepository:            controller.UserRepository,
+		UserRoleRepository:        controller.UserRoleRepository,
+		UserApplicationRepository: controller.UserApplicationRepository,
 	}
 }
 
@@ -110,8 +115,12 @@ func (uc *UserController) GetRefreshTokenByID(ctx context.Context, id int64) (re
 	return res, nil
 }
 
-func (uc *UserController) GetUserRoleByID(ctx context.Context, id int64) (res *userEntity.UserRole, err error) {
-	return uc.UserRepository.GetUserRoleByIDDB(ctx, id)
+func (uc *UserController) GetUserRoleByID(ctx context.Context, id int64, appID int64) (res *userEntity.UserRoleResponse, err error) {
+	return uc.UserRoleRepository.GetUserRoleByIDDB(ctx, id, appID)
+}
+
+func (uc *UserController) GetUserApplicationByIDAndApplicationSlug(ctx context.Context, id int64, appSlug string) (res *userEntity.UserApplicationResponse, err error) {
+	return uc.UserApplicationRepository.GetUserApplicationByUserIDAndApplicationSlugDB(ctx, id, appSlug)
 }
 
 func (uc *UserController) UpdateRefreshToken(ctx context.Context, force bool, id int64, refreshToken *string) (err error) {

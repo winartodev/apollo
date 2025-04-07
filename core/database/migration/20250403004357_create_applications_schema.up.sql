@@ -28,14 +28,6 @@ CREATE TABLE IF NOT EXISTS user_applications (
     PRIMARY KEY(user_id, application_id)
 );
 
-CREATE TABLE IF NOT EXISTS user_application_services (
-    user_id INT REFERENCES users(id) NOT NULL,
-    application_service_id INT REFERENCES application_services(id) NOT NULL,
-    created_at BIGINT DEFAULT 0,
-    updated_at BIGINT DEFAULT 0,
-    PRIMARY KEY(user_id, application_service_id)
-);
-
 -- Create Index
 CREATE INDEX idx_applications_is_active ON applications(is_active);
 CREATE INDEX idx_applications_created_at ON applications(created_at);
@@ -46,9 +38,6 @@ CREATE INDEX idx_application_services_is_active ON application_services(is_activ
 CREATE INDEX idx_application_services_created_at ON application_services(created_at);
 
 CREATE INDEX idx_user_applications_application_id ON user_applications(application_id);
-
-CREATE INDEX idx_user_application_services_application_service_id ON user_application_services(application_service_id);
-
 -- Data Seeding
 DO $$
     DECLARE current_epoch_time BIGINT;
@@ -64,12 +53,9 @@ BEGIN
     VALUES (2, 2, 'test-internal-services-1', 'Test Internal Services 1', true, current_epoch_time, current_epoch_time),
            (2, 2, 'test-internal-services-2', 'Test Internal Services 2', true, current_epoch_time, current_epoch_time),
            (2, 2, 'test-internal-services-3', 'Test Internal Services 3', true, current_epoch_time, current_epoch_time);
+
     INSERT INTO user_applications(user_id, application_id, created_at, updated_at)
     VALUES (1, 1, current_epoch_time, current_epoch_time),
            (2, 2, current_epoch_time, current_epoch_time),
            (3, 3, current_epoch_time, current_epoch_time);
-
-    INSERT INTO  user_application_services(user_id, application_service_id, created_at, updated_at)
-    VALUES (2, 1, current_epoch_time, current_epoch_time),
-           (2, 2, current_epoch_time, current_epoch_time);
 END$$

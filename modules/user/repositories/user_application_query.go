@@ -1,6 +1,21 @@
 package repositories
 
 const (
+	InsertUserApplicationQueryDB = `
+		INSERT INTO user_applications 
+			(
+				user_id, 
+				application_id, 
+				created_at, 
+				updated_at
+			) VALUES (
+				$1,
+				$2,
+				$3,
+				$4
+			)
+	`
+
 	GetUserApplicationsByUserIDQueryDB = `
 		SELECT DISTINCT
 			a.id AS app_id,
