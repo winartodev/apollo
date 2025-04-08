@@ -25,6 +25,7 @@ type JWTClaims struct {
 	ID       int64  `json:"id,omitempty"`
 	Username string `json:"username,omitempty"`
 	Email    string `json:"email,omitempty"`
+	AppID    int64  `json:"app_id,omitempty"`
 	jwt.StandardClaims
 }
 
@@ -67,7 +68,7 @@ func NewJWT() (*JWT, error) {
 	}, nil
 }
 
-func (j *JWT) GenerateToken(user *userEntity.User) (result *JWTResponse, err error) {
+func (j *JWT) GenerateToken(user *userEntity.User, application *userEntity.UserApplicationResponse) (result *JWTResponse, err error) {
 	if user == nil {
 		return nil, errors.New("user not found")
 	}
@@ -80,13 +81,15 @@ func (j *JWT) GenerateToken(user *userEntity.User) (result *JWTResponse, err err
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
+		AppID:    application.ID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(15 * time.Minute).Unix(),
 		},
 	})
 
 	newRefreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, JWTClaims{
-		ID: user.ID,
+		ID:    user.ID,
+		AppID: application.ID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 		},

@@ -18,6 +18,7 @@ type ControllerDependency struct {
 type Controller struct {
 	AuthController         authController.AuthControllerItf
 	GuardianController     guardianController.GuardianControllerItf
+	GuardianRoleController guardianController.GuardianRoleControllerItf
 	UserController         userController.UserControllerItf
 	VerificationController authController.VerificationControllerItf
 }
@@ -53,10 +54,15 @@ func NewController(dependency ControllerDependency) *Controller {
 		GuardianPermissionRepository: repository.GuardianPermissionRepository,
 	})
 
+	newGuardianRoleController := guardianController.NewGuardianRoleController(guardianController.GuardianRoleController{
+		GuardianRoleRepo: repository.GuardianRoleRepository,
+	})
+
 	return &Controller{
 		UserController:         newUserController,
 		VerificationController: newVerificationController,
 		AuthController:         newAuthController,
 		GuardianController:     newGuardianController,
+		GuardianRoleController: newGuardianRoleController,
 	}
 }

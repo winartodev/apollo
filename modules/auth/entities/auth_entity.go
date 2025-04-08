@@ -44,6 +44,7 @@ func (sur *SignUpRequest) BuildFromValue(ctx *fiber.Ctx) (res *SignUpRequest, er
 type SignInRequest struct {
 	Email    string `json:"email" form:"email"`
 	Password string `json:"password" form:"password"`
+	Slug     string `json:"slug" form:"slug"`
 }
 
 func (sir *SignInRequest) BuildFromValue(ctx *fiber.Ctx) (res *SignInRequest, err error) {

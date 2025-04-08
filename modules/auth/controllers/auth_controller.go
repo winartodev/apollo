@@ -48,12 +48,21 @@ func (ac *AuthController) SignIn(ctx context.Context, data *authEntity.SignInReq
 		return nil, err
 	}
 
+	userApplication, err := ac.UserController.GetUserApplicationByUserIDAndApplicationSlug(ctx, user.ID, data.Slug)
+	if err != nil {
+		return nil, err
+	}
+
+	if userApplication == nil {
+		return nil, errors.New("invalid application")
+	}
+
 	jwt, err := helpers.NewJWT()
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := jwt.GenerateToken(user)
+	token, err := jwt.GenerateToken(user, userApplication)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +194,21 @@ func (ac *AuthController) RefreshToken(ctx context.Context, providedRefreshToken
 		return nil, err
 	}
 
-	token, err := jwt.GenerateToken(user)
+	appID, ok := claims["app_id"].(float64)
+	if !ok {
+		return nil, errors.New("invalid refresh token")
+	}
+
+	userApplication, err := ac.UserController.GetUserApplicationByUserIDAndApplicationID(ctx, user.ID, int64(appID))
+	if err != nil {
+		return nil, err
+	}
+
+	if userApplication == nil {
+		return nil, errors.New("invalid application")
+	}
+
+	token, err := jwt.GenerateToken(user, userApplication)
 	if err != nil {
 		return nil, err
 	}

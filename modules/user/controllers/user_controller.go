@@ -23,7 +23,8 @@ type UserControllerItf interface {
 	GetPasswordByEmail(ctx context.Context, email string) (res *string, err error)
 	GetRefreshTokenByID(ctx context.Context, id int64) (res *string, err error)
 	GetUserRoleByID(ctx context.Context, id int64, appID int64) (res *userEntity.UserRoleResponse, err error)
-	GetUserApplicationByIDAndApplicationSlug(ctx context.Context, id int64, appSlug string) (res *userEntity.UserApplicationResponse, err error)
+	GetUserApplicationByUserIDAndApplicationSlug(ctx context.Context, id int64, appSlug string) (res *userEntity.UserApplicationResponse, err error)
+	GetUserApplicationByUserIDAndApplicationID(ctx context.Context, id int64, appID int64) (res *userEntity.UserApplicationResponse, err error)
 	ValidateUserIsExists(ctx context.Context, data *userEntity.User) (err error)
 }
 
@@ -119,8 +120,12 @@ func (uc *UserController) GetUserRoleByID(ctx context.Context, id int64, appID i
 	return uc.UserRoleRepository.GetUserRoleByIDDB(ctx, id, appID)
 }
 
-func (uc *UserController) GetUserApplicationByIDAndApplicationSlug(ctx context.Context, id int64, appSlug string) (res *userEntity.UserApplicationResponse, err error) {
+func (uc *UserController) GetUserApplicationByUserIDAndApplicationSlug(ctx context.Context, id int64, appSlug string) (res *userEntity.UserApplicationResponse, err error) {
 	return uc.UserApplicationRepository.GetUserApplicationByUserIDAndApplicationSlugDB(ctx, id, appSlug)
+}
+
+func (uc *UserController) GetUserApplicationByUserIDAndApplicationID(ctx context.Context, id int64, appID int64) (res *userEntity.UserApplicationResponse, err error) {
+	return uc.UserApplicationRepository.GetUserApplicationByUserIDAndApplicationIDDB(ctx, id, appID)
 }
 
 func (uc *UserController) UpdateRefreshToken(ctx context.Context, force bool, id int64, refreshToken *string) (err error) {

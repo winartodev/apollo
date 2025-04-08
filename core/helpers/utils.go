@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/winartodev/apollo/core"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -71,7 +72,17 @@ func GetFormValue(ctx *fiber.Ctx, key string, required bool) (value string, erro
 }
 
 func GetUserIDFromContext(ctx *fiber.Ctx) (id int64, err error) {
-	if localID, ok := ctx.Locals("id").(int64); ok {
+	if localID, ok := ctx.Locals(core.CtxUserID).(int64); ok {
+		id = localID
+	} else {
+		return 0, errors.New("no user id")
+	}
+
+	return id, nil
+}
+
+func GetAppIDFromContext(ctx *fiber.Ctx) (id int64, err error) {
+	if localID, ok := ctx.Locals(core.CtxAppID).(int64); ok {
 		id = localID
 	} else {
 		return 0, errors.New("no user id")

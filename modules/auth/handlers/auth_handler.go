@@ -29,13 +29,13 @@ func NewAuthHandler(handler AuthHandler) AuthHandler {
 func (h *AuthHandler) SignIn(ctx *fiber.Ctx) error {
 	context := ctx.Context()
 
-	req := authEntity.SignInRequest{}
-	data, err := req.BuildFromValue(ctx)
+	data := authEntity.SignInRequest{}
+	err := ctx.BodyParser(&data)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Invalid sign-up request", err)
 	}
 
-	res, err := h.AuthController.SignIn(context, data)
+	res, err := h.AuthController.SignIn(context, &data)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to sign in", err)
 	}
@@ -46,13 +46,13 @@ func (h *AuthHandler) SignIn(ctx *fiber.Ctx) error {
 func (h *AuthHandler) SignUp(ctx *fiber.Ctx) error {
 	context := ctx.Context()
 
-	req := authEntity.SignUpRequest{}
-	data, err := req.BuildFromValue(ctx)
+	data := authEntity.SignUpRequest{}
+	err := ctx.BodyParser(&data)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Invalid sign-up request", err)
 	}
 
-	_, err = h.AuthController.SignUp(context, data)
+	_, err = h.AuthController.SignUp(context, &data)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create user account", err)
 	}

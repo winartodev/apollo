@@ -20,6 +20,7 @@ type Repository struct {
 	UserRoleRepository           userRepo.UserRoleRepositoryItf
 	UserApplicationRepository    userRepo.UserApplicationRepositoryItf
 	GuardianPermissionRepository guardianRepo.GuardianPermissionRepositoryItf
+	GuardianRoleRepository       guardianRepo.GuardianRoleRepositoryItf
 	VerificationRepository       authRepo.VerificationRepositoryItf
 }
 
@@ -41,6 +42,10 @@ func NewRepository(dependency RepositoryDependency) *Repository {
 		DB: dependency.DB,
 	})
 
+	newGuardianRoleRepo := guardianRepo.NewGuardianRoleRepository(guardianRepo.GuardianRoleRepository{
+		DB: dependency.DB,
+	})
+
 	newApplicationServiceRepo := applicationRepo.NewApplicationServiceRepository(applicationRepo.ApplicationServiceRepository{
 		DB: dependency.DB,
 	})
@@ -51,6 +56,7 @@ func NewRepository(dependency RepositoryDependency) *Repository {
 		UserRepository:               newUserRepository,
 		UserRoleRepository:           userUserRoleRepository,
 		GuardianPermissionRepository: newGuardianPermissionRepo,
+		GuardianRoleRepository:       newGuardianRoleRepo,
 		UserApplicationRepository:    newUserApplicationRepo,
 	}
 }

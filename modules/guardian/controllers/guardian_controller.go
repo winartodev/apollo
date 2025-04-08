@@ -48,7 +48,7 @@ func (c *GuardianController) CheckUserPermissionToInternalApp(ctx context.Contex
 	}
 
 	// get user application access
-	userApplication, err := c.UserController.GetUserApplicationByIDAndApplicationSlug(ctx, userID, application.ToSlug())
+	userApplication, err := c.UserController.GetUserApplicationByUserIDAndApplicationSlug(ctx, userID, application.ToSlug())
 	if err != nil {
 		return false, err
 	}

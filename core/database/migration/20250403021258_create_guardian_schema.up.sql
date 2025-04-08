@@ -1,6 +1,7 @@
 -- Create Tables
 CREATE TABLE IF NOT EXISTS guardian_roles (
     id SERIAL PRIMARY KEY,
+    application_id INT REFERENCES applications(id) NOT NULL,
     slug VARCHAR(55) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL,
     description TEXT DEFAULT '',
@@ -44,17 +45,17 @@ DO $$
 BEGIN
     current_epoch_time =  EXTRACT(EPOCH FROM CURRENT_TIMESTAMP);
 
-    INSERT INTO guardian_roles(slug, name, description, created_at, updated_at)
-    VALUES ('super-admin', 'Super Administrator', 'Has full access to all system features and settings', current_epoch_time, current_epoch_time),
-           ('admin', 'Administrator', 'Can manage most system settings and user permissions', current_epoch_time, current_epoch_time),
-           ('moderator', 'Moderator', 'Can manage content and user interactions', current_epoch_time, current_epoch_time),
-           ('user', 'Regular User', 'Standard authenticated user with basic privileges', current_epoch_time, current_epoch_time),
-           ('guest', 'Guest User', 'Limited access for unauthenticated users', current_epoch_time, current_epoch_time),
-           ('developer', 'Developer', 'Technical staff with API and system integration access', current_epoch_time, current_epoch_time),
-           ('support', 'Support Staff', 'Can access customer support features and user accounts', current_epoch_time, current_epoch_time),
-           ('content-manager', 'Content Manager', 'Can create, edit, and publish content', current_epoch_time, current_epoch_time),
-           ('billing', 'Billing Specialist', 'Manages subscriptions, payments, and invoices', current_epoch_time, current_epoch_time),
-           ('api-user', 'API User', 'Service account for system integrations', current_epoch_time, current_epoch_time);
+    INSERT INTO guardian_roles(application_id, slug, name, description, created_at, updated_at)
+    VALUES (2, 'super-admin', 'Super Administrator', 'Has full access to all system features and settings', current_epoch_time, current_epoch_time),
+           (2, 'admin', 'Administrator', 'Can manage most system settings and user permissions', current_epoch_time, current_epoch_time),
+           (2, 'moderator', 'Moderator', 'Can manage content and user interactions', current_epoch_time, current_epoch_time),
+           (2, 'user', 'Regular User', 'Standard authenticated user with basic privileges', current_epoch_time, current_epoch_time),
+           (2, 'guest', 'Guest User', 'Limited access for unauthenticated users', current_epoch_time, current_epoch_time),
+           (2, 'developer', 'Developer', 'Technical staff with API and system integration access', current_epoch_time, current_epoch_time),
+           (2, 'support', 'Support Staff', 'Can access customer support features and user accounts', current_epoch_time, current_epoch_time),
+           (2, 'content-manager', 'Content Manager', 'Can create, edit, and publish content', current_epoch_time, current_epoch_time),
+           (2, 'billing', 'Billing Specialist', 'Manages subscriptions, payments, and invoices', current_epoch_time, current_epoch_time),
+           (2, 'api-user', 'API User', 'Service account for system integrations', current_epoch_time, current_epoch_time);
 
     INSERT INTO guardian_permissions(slug, name, description, created_at, updated_at)
     VALUES ('get', 'GET', 'Retrieve Data', current_epoch_time, current_epoch_time),

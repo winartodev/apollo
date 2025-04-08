@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/winartodev/apollo/core"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/responses"
 	applicationEnum "github.com/winartodev/apollo/modules/application/enums"
@@ -45,9 +46,7 @@ func (m *Middleware) HandlePublicAccess() fiber.Handler {
 				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", err)
 			}
 
-			c.Locals("id", claim.ID)
-			c.Locals("username", claim.Username)
-			c.Locals("email", claim.Email)
+			_ = m.storeToContext(c, claim)
 		}
 
 		return c.Next()
@@ -94,15 +93,22 @@ func (m *Middleware) HandleInternalAccess(config *InternalAccessConfig) fiber.Ha
 				}
 			}
 
-			c.Locals("id", claim.ID)
-			c.Locals("username", claim.Username)
-			c.Locals("email", claim.Email)
+			_ = m.storeToContext(c, claim)
 		} else {
 			return responses.FailedResponse(c, fiber.StatusForbidden, "Access Denied", errorMissingToken)
 		}
 
 		return c.Next()
 	}
+}
+
+func (m *Middleware) storeToContext(c *fiber.Ctx, claim *helpers.JWTClaims) (err error) {
+	c.Locals(core.CtxUserID, claim.ID)
+	c.Locals(core.CtxUserUsername, claim.Username)
+	c.Locals(core.CtxUserEmail, claim.Email)
+	c.Locals(core.CtxAppID, claim.AppID)
+
+	return nil
 }
 
 func isAuthHeaderExists(c *fiber.Ctx, token *string) bool {

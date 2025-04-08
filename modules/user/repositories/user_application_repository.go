@@ -10,6 +10,7 @@ import (
 type UserApplicationRepositoryItf interface {
 	CreateUserApplicationDB(ctx context.Context, app *entities.UserApplication) (err error)
 	GetUserApplicationsByUserIDDB(ctx context.Context, userID int64) (res []entities.UserApplicationResponse, err error)
+	GetUserApplicationByUserIDAndApplicationIDDB(ctx context.Context, userID int64, appID int64) (res *entities.UserApplicationResponse, err error)
 	GetUserApplicationByUserIDAndApplicationSlugDB(ctx context.Context, userID int64, applicationSlug string) (res *entities.UserApplicationResponse, err error)
 }
 
@@ -103,6 +104,32 @@ func (ur *UserApplicationRepository) GetUserApplicationByUserIDAndApplicationSlu
 
 	res = &entities.UserApplicationResponse{}
 	err = stmt.QueryRowContext(ctx, userID, applicationSlug).Scan(
+		&res.ID,
+		&res.Slug,
+		&res.Name,
+		&res.IsActive,
+	)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	return res, nil
+}
+
+func (ur *UserApplicationRepository) GetUserApplicationByUserIDAndApplicationIDDB(ctx context.Context, userID int64, appID int64) (res *entities.UserApplicationResponse, err error) {
+	stmt, err := ur.DB.PrepareContext(ctx, GetUserApplicationByUserIDAndApplicationIDQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+
+	res = &entities.UserApplicationResponse{}
+	err = stmt.QueryRowContext(ctx, userID, appID).Scan(
 		&res.ID,
 		&res.Slug,
 		&res.Name,

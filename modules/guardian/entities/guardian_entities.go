@@ -1,7 +1,11 @@
 package entities
 
 import (
+	"fmt"
 	userEntity "github.com/winartodev/apollo/modules/user/entities"
+	"regexp"
+	"strings"
+	"time"
 )
 
 type GuardianUserAccessPermission struct {
@@ -44,9 +48,30 @@ type GuardianUser struct {
 }
 
 type GuardianRole struct {
-	ID   int64  `json:"id"`
-	Slug string `json:"slug"`
-	Name string `json:"name"`
+	ID            int64      `json:"id"`
+	ApplicationID int64      `json:"application_id"`
+	Slug          string     `json:"slug"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	CreatedAt     *time.Time `json:"created_at,omitempty"`
+	UpdatedAt     *time.Time `json:"updated_at,omitempty"`
+}
+
+func (gr *GuardianRole) GenerateSlug() string {
+	if gr.Name == "" {
+		return ""
+	}
+
+	slug := strings.ToLower(gr.Name)
+
+	slug = strings.ReplaceAll(slug, " ", "-")
+
+	reg := regexp.MustCompile(`[^a-z0-9-]+`)
+	slug = reg.ReplaceAllString(slug, "")
+
+	slug = fmt.Sprintf("%d-%s", gr.ApplicationID, slug)
+
+	return slug
 }
 
 type GuardianApplication struct {
