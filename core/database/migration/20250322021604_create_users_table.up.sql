@@ -1,3 +1,4 @@
+-- Create Table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     uuid VARCHAR(255) NOT NULL UNIQUE,
@@ -15,3 +16,16 @@ CREATE TABLE IF NOT EXISTS users (
     created_at BIGINT DEFAULT 0,
     updated_at BIGINT DEFAULT 0
 );
+
+-- Seeding Data
+DO $$
+    DECLARE current_epoch_time BIGINT;
+BEGIN
+    current_epoch_time =  EXTRACT(EPOCH FROM CURRENT_TIMESTAMP);
+
+    INSERT INTO users (uuid, email, phone_number, username, profile_picture, first_name, last_name, password, is_email_verified, is_phone_verified, created_at, updated_at)
+    VALUES ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a01', 'public-user@gmail.com', '0812345678', 'Public User', '', 'Public', 'User', '$2a$10$JLqd1c/C5Aj13v88fcMx8.tcue8JiOh9sEL8FRhtLy.l2Vn3.VBWm', true, true, current_epoch_time, current_epoch_time),
+           ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a02', 'internal-user-1@gmail.com', '0823456789', 'Internal User 1', '', 'Internal', 'User 1', '$2a$10$JLqd1c/C5Aj13v88fcMx8.tcue8JiOh9sEL8FRhtLy.l2Vn3.VBWm', true, true, current_epoch_time, current_epoch_time),
+           ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a03', 'internal-user-2@gmail.com', '0823456781', 'Internal User 2', '', 'Internal', 'User 2', '$2a$10$JLqd1c/C5Aj13v88fcMx8.tcue8JiOh9sEL8FRhtLy.l2Vn3.VBWm', true, true, current_epoch_time, current_epoch_time),
+           ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a04', 'protected-user@gmail.com', '0834567890', 'Protected User', '', 'Protected', 'User', '$2a$10$JLqd1c/C5Aj13v88fcMx8.tcue8JiOh9sEL8FRhtLy.l2Vn3.VBWm', true, true, current_epoch_time, current_epoch_time);
+END$$
