@@ -9,6 +9,7 @@ import (
 	"github.com/winartodev/apollo/core/helpers"
 	userEntity "github.com/winartodev/apollo/modules/user/entities"
 	userRepo "github.com/winartodev/apollo/modules/user/repositories"
+	"time"
 )
 
 var (
@@ -16,7 +17,7 @@ var (
 )
 
 type UserControllerItf interface {
-	CreateUser(ctx context.Context, data userEntity.User) (id *int64, err error)
+	CreateUser(ctx context.Context, data userEntity.User) (res *userEntity.User, err error)
 	UpdateRefreshToken(ctx context.Context, force bool, id int64, refreshToken *string) (err error)
 	GetUserByID(ctx context.Context, id int64) (res *userEntity.User, err error)
 	GetUserByEmail(ctx context.Context, email string) (res *userEntity.User, err error)
@@ -35,7 +36,11 @@ func NewUserController(controller UserController) UserControllerItf {
 	}
 }
 
-func (uc *UserController) CreateUser(ctx context.Context, data userEntity.User) (id *int64, err error) {
+func (uc *UserController) CreateUser(ctx context.Context, data userEntity.User) (res *userEntity.User, err error) {
+	now := time.Now()
+	data.CreatedAt = &now
+	data.UpdatedAt = &now
+
 	newUUID, err := uuid.NewUUID()
 	if err != nil {
 		return nil, err
@@ -49,12 +54,14 @@ func (uc *UserController) CreateUser(ctx context.Context, data userEntity.User) 
 	data.UUID = newUUID.String()
 	data.Password = &passwordHash
 
-	res, err := uc.UserRepository.CreateUserDB(ctx, &data)
+	id, err := uc.UserRepository.CreateUserDB(ctx, &data)
 	if err != nil {
 		return nil, err
 	}
 
-	return &res, err
+	data.ID = id
+
+	return &data, err
 }
 
 func (uc *UserController) GetUserByID(ctx context.Context, id int64) (res *userEntity.User, err error) {

@@ -7,6 +7,7 @@ import (
 )
 
 type ControllerDependency struct {
+	OTP        *configs.OTP
 	SMTPClient *configs.SMTPClient
 	Twilio     *configs.TwilioClient
 	Repository *Repository
@@ -26,12 +27,14 @@ func NewController(dependency ControllerDependency) *Controller {
 	})
 
 	newVerificationController := authController.NewVerificationController(authController.VerificationController{
+		OTP:                    dependency.OTP,
 		SmtpClient:             dependency.SMTPClient,
 		TwilioClient:           dependency.Twilio,
 		VerificationRepository: repository.VerificationRepository,
 	})
 
 	newAuthController := authController.NewAuthController(authController.AuthController{
+		OTP:                    dependency.OTP,
 		VerificationController: newVerificationController,
 		UserController:         newUserController,
 	})
