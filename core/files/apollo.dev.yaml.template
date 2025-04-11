@@ -19,15 +19,13 @@ redis:
   port:
   name:
   password:
+otp:
+  enable: false
 smtp:
   host:
   port:
   sender:
   password:
-twilio:
-  sid:
-  authToken:
-  phoneNumber:
 twilio:
   sid:
   authToken:

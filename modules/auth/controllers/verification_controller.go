@@ -52,6 +52,7 @@ type VerificationControllerItf interface {
 }
 
 type VerificationController struct {
+	OTP                    *configs.OTP
 	SmtpClient             *configs.SMTPClient
 	TwilioClient           *configs.TwilioClient
 	VerificationRepository authRepo.VerificationRepositoryItf
@@ -59,6 +60,7 @@ type VerificationController struct {
 
 func NewVerificationController(controller VerificationController) VerificationControllerItf {
 	return &VerificationController{
+		OTP:                    controller.OTP,
 		SmtpClient:             controller.SmtpClient,
 		TwilioClient:           controller.TwilioClient,
 		VerificationRepository: controller.VerificationRepository,
@@ -141,6 +143,10 @@ func (vc *VerificationController) handleSendPhoneOTP(ctx context.Context, data a
 }
 
 func (vc *VerificationController) GetOTP(ctx context.Context, verificationType int, value string) (data *authEntity.OTPData, err error) {
+	if !vc.OTP.Enable {
+		return nil, nil
+	}
+
 	switch verificationType {
 	case authEnum.VerificationEmail:
 		return vc.VerificationRepository.GetEmailOTPRedis(ctx, value)
@@ -152,6 +158,10 @@ func (vc *VerificationController) GetOTP(ctx context.Context, verificationType i
 }
 
 func (vc *VerificationController) CreateOTP(ctx context.Context, verificationType int, value string) (err error) {
+	if !vc.OTP.Enable {
+		return nil
+	}
+
 	data, err := vc.GetOTP(ctx, verificationType, value)
 	if err != nil {
 		return err
@@ -165,6 +175,10 @@ func (vc *VerificationController) CreateOTP(ctx context.Context, verificationTyp
 }
 
 func (vc *VerificationController) VerifyOTP(ctx context.Context, verificationType int, value string, code string) (err error) {
+	if !vc.OTP.Enable {
+		return nil
+	}
+
 	data, err := vc.GetOTP(ctx, verificationType, value)
 	if err != nil {
 		return err
@@ -202,6 +216,10 @@ func (vc *VerificationController) VerifyOTP(ctx context.Context, verificationTyp
 }
 
 func (vc *VerificationController) ResendOTP(ctx context.Context, verificationType int, value string) (err error) {
+	if !vc.OTP.Enable {
+		return nil
+	}
+
 	data, err := vc.GetOTP(ctx, verificationType, value)
 	if err != nil {
 		return err
@@ -257,6 +275,10 @@ func (vc *VerificationController) SendOTPToEmail(data OTPMailTemplate) error {
 }
 
 func (vc *VerificationController) DeleteOTP(ctx context.Context, verificationType int, value string) (err error) {
+	if !vc.OTP.Enable {
+		return nil
+	}
+
 	data, err := vc.GetOTP(ctx, verificationType, value)
 	if err != nil {
 		return err

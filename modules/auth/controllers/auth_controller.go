@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/winartodev/apollo/core"
+	"github.com/winartodev/apollo/core/configs"
 	"github.com/winartodev/apollo/core/helpers"
 	authEnum "github.com/winartodev/apollo/modules/auth/emums"
 	authEntity "github.com/winartodev/apollo/modules/auth/entities"
@@ -15,18 +16,20 @@ import (
 
 type AuthControllerItf interface {
 	SignIn(ctx context.Context, data *authEntity.SignInRequest) (res *authEntity.AuthResponse, err error)
-	SignUp(ctx context.Context, data *authEntity.SignUpRequest) (success bool, err error)
+	SignUp(ctx context.Context, data *authEntity.SignUpRequest) (res *userEntity.User, err error)
 	SignOut(ctx context.Context, id int64) (success bool, err error)
 	RefreshToken(ctx context.Context, providedRefreshToken string) (res *authEntity.AuthResponse, err error)
 }
 
 type AuthController struct {
+	OTP                    *configs.OTP
 	VerificationController VerificationControllerItf
 	UserController         userController.UserControllerItf
 }
 
 func NewAuthController(controller AuthController) AuthControllerItf {
 	return &AuthController{
+		OTP:                    controller.OTP,
 		VerificationController: controller.VerificationController,
 		UserController:         controller.UserController,
 	}
@@ -76,10 +79,10 @@ func (ac *AuthController) SignIn(ctx context.Context, data *authEntity.SignInReq
 	return res, nil
 }
 
-func (ac *AuthController) SignUp(ctx context.Context, data *authEntity.SignUpRequest) (success bool, err error) {
+func (ac *AuthController) SignUp(ctx context.Context, data *authEntity.SignUpRequest) (res *userEntity.User, err error) {
 	newPhone, err := helpers.FormatIndonesianPhoneNumber(data.PhoneNumber)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	user := userEntity.User{
@@ -91,50 +94,36 @@ func (ac *AuthController) SignUp(ctx context.Context, data *authEntity.SignUpReq
 
 	err = ac.UserController.ValidateUserIsExists(ctx, &user)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	otpPhone, err := ac.VerificationController.GetOTP(ctx, authEnum.VerificationPhone, user.PhoneNumber)
+	if ac.OTP.Enable {
+		err = ac.CheckOTPVerificationOTP(ctx, &user)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	newUser, err := ac.UserController.CreateUser(ctx, user)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	otpEmail, err := ac.VerificationController.GetOTP(ctx, authEnum.VerificationEmail, user.Email)
-	if err != nil {
-		return false, err
-	}
-
-	if otpPhone == nil || !otpPhone.IsVerified {
-		return false, errors.New("phone number is not verified")
-	}
-
-	if otpEmail == nil || !otpEmail.IsVerified {
-		return false, errors.New("email is not verified")
-	}
-
-	user.IsEmailVerified = otpEmail.IsVerified
-	user.IsPhoneVerified = otpPhone.IsVerified
-
-	id, err := ac.UserController.CreateUser(ctx, user)
-	if err != nil {
-		return false, err
-	}
-
-	if id == nil || *id == 0 {
-		return false, errors.New("user can't created")
+	if newUser == nil {
+		return nil, errors.New("user can't created")
 	}
 
 	err = ac.VerificationController.DeleteOTP(ctx, authEnum.VerificationPhone, user.PhoneNumber)
 	if err != nil && err != ErrorOTPDataEmpty {
-		return false, err
+		return nil, err
 	}
 
 	err = ac.VerificationController.DeleteOTP(ctx, authEnum.VerificationEmail, user.Email)
 	if err != nil && err != ErrorOTPDataEmpty {
-		return false, err
+		return nil, err
 	}
 
-	return true, nil
+	return newUser, nil
 }
 
 func (ac *AuthController) SignOut(ctx context.Context, id int64) (success bool, err error) {
@@ -201,4 +190,32 @@ func (ac *AuthController) RefreshToken(ctx context.Context, providedRefreshToken
 	}
 
 	return res, err
+}
+
+func (ac *AuthController) CheckOTPVerificationOTP(ctx context.Context, user *userEntity.User) (err error) {
+	data := *user
+	otpPhone, err := ac.VerificationController.GetOTP(ctx, authEnum.VerificationPhone, data.PhoneNumber)
+	if err != nil {
+		return err
+	}
+
+	otpEmail, err := ac.VerificationController.GetOTP(ctx, authEnum.VerificationEmail, data.Email)
+	if err != nil {
+		return err
+	}
+
+	if otpPhone == nil || !otpPhone.IsVerified {
+		return errors.New("phone number is not verified")
+	}
+
+	if otpEmail == nil || !otpEmail.IsVerified {
+		return errors.New("email is not verified")
+	}
+
+	data.IsEmailVerified = true
+	data.IsPhoneVerified = true
+
+	*user = data
+
+	return nil
 }

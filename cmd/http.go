@@ -75,6 +75,7 @@ func main() {
 
 	repository := routes.NewRepository(routes.RepositoryDependency{DB: db, Redis: redisClient})
 	controller := routes.NewController(routes.ControllerDependency{
+		OTP:        &cfg.OTP,
 		Repository: repository,
 		SMTPClient: smtpClient,
 		Twilio:     twilioClient})

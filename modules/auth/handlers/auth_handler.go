@@ -52,12 +52,12 @@ func (h *AuthHandler) SignUp(ctx *fiber.Ctx) error {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Invalid sign-up request", err)
 	}
 
-	_, err = h.AuthController.SignUp(context, data)
+	res, err := h.AuthController.SignUp(context, data)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create user account", err)
 	}
 
-	return responses.SuccessResponse(ctx, fiber.StatusCreated, "User account created successfully", nil, nil)
+	return responses.SuccessResponse(ctx, fiber.StatusCreated, "User account created successfully", res, nil)
 }
 
 func (h *AuthHandler) SignOut(ctx *fiber.Ctx) error {

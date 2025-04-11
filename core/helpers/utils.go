@@ -3,6 +3,7 @@ package helpers
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
@@ -202,4 +203,9 @@ func NormalizePhoneNumber(phone string) string {
 		}
 		return -1
 	}, phone)
+}
+
+func PrintJSON(v interface{}) {
+	marshaled, _ := json.MarshalIndent(v, "", "   ")
+	fmt.Println(string(marshaled))
 }
