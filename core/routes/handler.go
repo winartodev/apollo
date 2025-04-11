@@ -7,7 +7,6 @@ import (
 	"github.com/winartodev/apollo/core/middlewares"
 	authHandler "github.com/winartodev/apollo/modules/auth/handlers"
 	guardianHandler "github.com/winartodev/apollo/modules/guardian/handlers"
-	internalServiceTest "github.com/winartodev/apollo/modules/test_internal_service/handlers"
 	userHandler "github.com/winartodev/apollo/modules/user/handlers"
 	"time"
 )
@@ -20,7 +19,6 @@ type Handler struct {
 	AuthHandler         authHandler.AuthHandler
 	UserHandler         userHandler.UserHandler
 	GuardianRoleHandler guardianHandler.GuardianRoleHandler
-	InternalServiceTest internalServiceTest.TestInternalServiceHandler
 }
 
 func NewHandler(dependency HandlerDependency) *Handler {
@@ -42,10 +40,6 @@ func NewHandler(dependency HandlerDependency) *Handler {
 		UserController: controller.UserController,
 	})
 
-	newTest := internalServiceTest.NewTestInternalServiceHandler(internalServiceTest.TestInternalServiceHandler{
-		Middleware: middleware,
-	})
-
 	newGuardianRoleHandler := guardianHandler.NewGuardianRoleHandler(guardianHandler.GuardianRoleHandler{
 		Middleware:   middleware,
 		GuardianRole: controller.GuardianRoleController,
@@ -55,7 +49,6 @@ func NewHandler(dependency HandlerDependency) *Handler {
 		AuthHandler:         newAuthHandler,
 		UserHandler:         newUserHandler,
 		GuardianRoleHandler: newGuardianRoleHandler,
-		InternalServiceTest: newTest,
 	}
 }
 
@@ -67,7 +60,6 @@ func GetRegisters(handler *Handler) []RegisterHandlerItf {
 	return []RegisterHandlerItf{
 		&handler.AuthHandler,
 		&handler.UserHandler,
-		&handler.InternalServiceTest,
 		&handler.GuardianRoleHandler,
 	}
 }
