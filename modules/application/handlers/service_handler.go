@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core"
+	"github.com/winartodev/apollo/core/errors"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/middlewares"
 	"github.com/winartodev/apollo/core/responses"
@@ -30,25 +31,25 @@ func NewServiceHandler(handler ServiceHandler) ServiceHandler {
 func (sh *ServiceHandler) Create(ctx *fiber.Ctx) error {
 	id, err := helpers.GetUserIDFromContext(ctx)
 	if err != nil {
-		return responses.FailedResponse(ctx, fiber.StatusUnauthorized, "Authentication required", err)
+		return responses.FailedResponseV2(ctx, errors.AuthorizationErr(err.Error()))
 	}
 
 	data := entities.Service{}
 	err = ctx.BodyParser(&data)
 	if err != nil {
-		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Failed to parse request body", err)
+		return responses.FailedResponseV2(ctx, errors.FailedParseRequestBodyErr(err.Error()))
 	}
 
 	data.CreatedBy = id
 	data.UpdatedBy = id
 
 	context := ctx.Context()
-	resp, _, err := sh.ServiceController.CreateService(context, data)
-	if err != nil {
-		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create service", err)
+	resp, errResp := sh.ServiceController.CreateService(context, data)
+	if errResp != nil {
+		return responses.FailedResponseV2(ctx, errResp)
 	}
 
-	return responses.SuccessResponse(ctx, fiber.StatusCreated, "Your request has been processed successfully", resp, nil)
+	return responses.SuccessResponseV2(ctx, fiber.StatusCreated, resp, nil)
 }
 
 func (sh *ServiceHandler) Register(router fiber.Router) error {

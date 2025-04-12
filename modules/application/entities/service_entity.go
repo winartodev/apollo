@@ -1,7 +1,8 @@
 package entities
 
 import (
-	"errors"
+	"github.com/winartodev/apollo/core/errors"
+	"github.com/winartodev/apollo/modules/application"
 	"regexp"
 	"strings"
 	"time"
@@ -24,14 +25,14 @@ type Service struct {
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
-func GenerateServiceSlug(data *Service) error {
+func GenerateServiceSlug(data *Service) errors.Errors {
 	if data == nil {
-		return errors.New("data is nil")
+		return errors.MissingRequestBodyErr
 	}
 
 	dataCp := *data
 	if dataCp.Name == "" {
-		return errors.New("data is required")
+		return application.ServiceNameIsEmptyErr
 	}
 
 	slug := strings.ToLower(strings.TrimSpace(dataCp.Name))

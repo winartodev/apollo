@@ -3,14 +3,19 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"github.com/winartodev/apollo/core/errors"
 	applicaitonEntity "github.com/winartodev/apollo/modules/application/entities"
 	applicationRepo "github.com/winartodev/apollo/modules/application/repository"
 	"time"
 )
 
+const (
+	slugAlreadyExists = "slug %s already exists"
+)
+
 type ServiceControllerItf interface {
-	CreateService(ctx context.Context, data applicaitonEntity.Service) (res *applicaitonEntity.Service, affectedRows int64, err error)
-	GetServiceBySlug(ctx context.Context, slug string) (res *applicaitonEntity.Service, err error)
+	CreateService(ctx context.Context, data applicaitonEntity.Service) (res *applicaitonEntity.Service, err errors.Errors)
+	GetServiceBySlug(ctx context.Context, slug string) (res *applicaitonEntity.Service, err errors.Errors)
 }
 
 type ServiceController struct {
@@ -23,35 +28,40 @@ func NewServiceController(controller ServiceController) ServiceControllerItf {
 	}
 }
 
-func (sc *ServiceController) CreateService(ctx context.Context, data applicaitonEntity.Service) (res *applicaitonEntity.Service, affectedRows int64, err error) {
+func (sc *ServiceController) CreateService(ctx context.Context, data applicaitonEntity.Service) (res *applicaitonEntity.Service, err errors.Errors) {
 	err = applicaitonEntity.GenerateServiceSlug(&data)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	dataExists, err := sc.GetServiceBySlug(ctx, data.Slug)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	if dataExists != nil {
-		return nil, 0, fmt.Errorf("slug %s already exists", data.Slug)
+		return nil, errors.DataAlreadyExistsErr(fmt.Sprintf(slugAlreadyExists, data.Slug))
 	}
 
 	now := time.Now()
 	data.CreatedAt = &now
 	data.UpdatedAt = &now
 
-	id, err := sc.ServiceRepo.CreateServiceDB(ctx, data)
-	if err != nil {
-		return nil, 0, err
+	id, dbErr := sc.ServiceRepo.CreateServiceDB(ctx, data)
+	if dbErr != nil {
+		return nil, errors.InternalServerErr(dbErr.Error())
 	}
 
 	data.ID = *id
 
-	return &data, 1, nil
+	return &data, nil
 }
 
-func (sc *ServiceController) GetServiceBySlug(ctx context.Context, slug string) (res *applicaitonEntity.Service, err error) {
-	return sc.ServiceRepo.GetServiceBySlugDB(ctx, slug)
+func (sc *ServiceController) GetServiceBySlug(ctx context.Context, slug string) (res *applicaitonEntity.Service, err errors.Errors) {
+	data, dbErr := sc.ServiceRepo.GetServiceBySlugDB(ctx, slug)
+	if dbErr != nil {
+		return nil, errors.InternalServerErr(dbErr.Error())
+	}
+
+	return data, nil
 }

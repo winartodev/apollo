@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core"
+	"github.com/winartodev/apollo/core/errors"
 	"github.com/winartodev/apollo/core/helpers"
 )
 
@@ -13,7 +14,7 @@ const (
 )
 
 type Header struct {
-	Status    string `json:"status"`
+	Status    string `json:"status,omitempty"`
 	Message   string `json:"message"`
 	Reason    string `json:"reason,omitempty"`
 	ErrorCode string `json:"error_code,omitempty"`
@@ -22,8 +23,7 @@ type Header struct {
 type Response struct {
 	Header   Header      `json:"header"`
 	Data     interface{} `json:"data"`
-	Metadata interface{} `json:"metadata,omitempty"`
-	Error    string      `json:"error,omitempty"`
+	Metadata interface{} `json:"metadata"`
 }
 
 type PaginateResponse struct {
@@ -44,7 +44,7 @@ func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interfac
 	return c.Status(statusCode).JSON(Response{
 		Header: Header{
 			Status:  statusSuccess,
-			Message: message,
+			Message: "Your request has been processed successfully",
 		},
 		Data:     data,
 		Metadata: metadata,
@@ -66,6 +66,30 @@ func FailedResponse(c *fiber.Ctx, statusCode int, message string, err error) err
 		Data: nil,
 	})
 }
+
+func SuccessResponseV2(c *fiber.Ctx, statusCode int, data interface{}, metadata interface{}) error {
+	return c.Status(statusCode).JSON(Response{
+		Header: Header{
+			Status:  statusSuccess,
+			Message: "Your request has been processed successfully",
+		},
+		Data:     data,
+		Metadata: metadata,
+	})
+}
+
+func FailedResponseV2(c *fiber.Ctx, err errors.Errors) error {
+	var data = err.Error()
+	return c.Status(data.StatusCode).JSON(Response{
+		Header: Header{
+			Message:   data.Message,
+			Reason:    data.Reason,
+			ErrorCode: data.ErrorCode,
+		},
+		Data: nil,
+	})
+}
+
 func generateLink(link string, page int64, limit int64) string {
 	if link == "" {
 		return ""
