@@ -20,7 +20,7 @@ var (
 	errorInvalidInternalAccess = errors.New("internal resource cannot be accessed due to invalid request")
 	errorInvalidToken          = errors.New("provided token is invalid or expired")
 	errorFailedInstanceJWT     = errors.New("failed to create instance JWT")
-	errorMissingToken          = errors.New("authentication token is missing or improperly formatted. Expected 'Bearer <token>'")
+	errorMissingToken          = errors.New("authentication token is missing or improperly formatted")
 	errorUserNotFound          = errors.New("user not found")
 )
 

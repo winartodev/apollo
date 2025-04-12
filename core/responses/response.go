@@ -12,10 +12,16 @@ const (
 	statusFailed  = "Failed"
 )
 
+type Header struct {
+	Status    string `json:"status"`
+	Message   string `json:"message"`
+	Reason    string `json:"reason,omitempty"`
+	ErrorCode string `json:"error_code,omitempty"`
+}
+
 type Response struct {
-	Status   string      `json:"status"`
-	Message  string      `json:"message"`
-	Data     interface{} `json:"data,omitempty"`
+	Header   Header      `json:"header"`
+	Data     interface{} `json:"data"`
 	Metadata interface{} `json:"metadata,omitempty"`
 	Error    string      `json:"error,omitempty"`
 }
@@ -36,8 +42,10 @@ type PaginateResponse struct {
 
 func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interface{}, metadata interface{}) error {
 	return c.Status(statusCode).JSON(Response{
-		Status:   statusSuccess,
-		Message:  message,
+		Header: Header{
+			Status:  statusSuccess,
+			Message: message,
+		},
 		Data:     data,
 		Metadata: metadata,
 	})
@@ -50,9 +58,12 @@ func FailedResponse(c *fiber.Ctx, statusCode int, message string, err error) err
 	}
 
 	return c.Status(statusCode).JSON(Response{
-		Status:  statusFailed,
-		Message: message,
-		Error:   e,
+		Header: Header{
+			Status:  statusFailed,
+			Message: message,
+			Reason:  e,
+		},
+		Data: nil,
 	})
 }
 func generateLink(link string, page int64, limit int64) string {

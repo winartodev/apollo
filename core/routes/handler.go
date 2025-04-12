@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core"
 	"github.com/winartodev/apollo/core/middlewares"
+	applicationHandler "github.com/winartodev/apollo/modules/application/handlers"
 	authHandler "github.com/winartodev/apollo/modules/auth/handlers"
 	userHandler "github.com/winartodev/apollo/modules/user/handlers"
 	"time"
@@ -15,8 +16,9 @@ type HandlerDependency struct {
 }
 
 type Handler struct {
-	AuthHandler authHandler.AuthHandler
-	UserHandler userHandler.UserHandler
+	AuthHandler    authHandler.AuthHandler
+	UserHandler    userHandler.UserHandler
+	ServiceHandler applicationHandler.ServiceHandler
 }
 
 func NewHandler(dependency HandlerDependency) *Handler {
@@ -37,9 +39,15 @@ func NewHandler(dependency HandlerDependency) *Handler {
 		UserController: controller.UserController,
 	})
 
+	newServiceHandler := applicationHandler.NewServiceHandler(applicationHandler.ServiceHandler{
+		Middleware:        middleware,
+		ServiceController: controller.ServiceController,
+	})
+
 	return &Handler{
-		AuthHandler: newAuthHandler,
-		UserHandler: newUserHandler,
+		AuthHandler:    newAuthHandler,
+		UserHandler:    newUserHandler,
+		ServiceHandler: newServiceHandler,
 	}
 }
 
@@ -51,6 +59,7 @@ func GetRegisters(handler *Handler) []RegisterHandlerItf {
 	return []RegisterHandlerItf{
 		&handler.AuthHandler,
 		&handler.UserHandler,
+		&handler.ServiceHandler,
 	}
 }
 

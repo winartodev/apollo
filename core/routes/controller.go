@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/winartodev/apollo/core/configs"
+	applicationController "github.com/winartodev/apollo/modules/application/controllers"
 	authController "github.com/winartodev/apollo/modules/auth/controllers"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
 )
@@ -17,6 +18,7 @@ type Controller struct {
 	UserController         userController.UserControllerItf
 	VerificationController authController.VerificationControllerItf
 	AuthController         authController.AuthControllerItf
+	ServiceController      applicationController.ServiceControllerItf
 }
 
 func NewController(dependency ControllerDependency) *Controller {
@@ -39,9 +41,14 @@ func NewController(dependency ControllerDependency) *Controller {
 		UserController:         newUserController,
 	})
 
+	newServiceController := applicationController.NewServiceController(applicationController.ServiceController{
+		ServiceRepo: repository.ServiceRepository,
+	})
+
 	return &Controller{
 		UserController:         newUserController,
 		VerificationController: newVerificationController,
 		AuthController:         newAuthController,
+		ServiceController:      newServiceController,
 	}
 }
