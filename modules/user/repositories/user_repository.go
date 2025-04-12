@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/modules/user/entities"
-	"time"
 )
 
 type UserRepositoryItf interface {
@@ -32,9 +31,8 @@ func NewUserRepository(db *sql.DB) UserRepositoryItf {
 }
 
 func (ur *UserRepository) CreateUserDB(ctx context.Context, user *entities.User) (id int64, err error) {
-	now := time.Now()
-	createdAtUnix := now.Unix()
-	updatedAtUnix := now.Unix()
+	createdAtUnix := user.CreatedAt.Unix()
+	updatedAtUnix := user.UpdatedAt.Unix()
 
 	tx, err := ur.DB.BeginTx(ctx, nil)
 	if err != nil {
