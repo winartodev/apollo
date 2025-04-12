@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/winartodev/apollo/core"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/responses"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
@@ -20,7 +21,7 @@ var (
 	errorInvalidInternalAccess = errors.New("internal resource cannot be accessed due to invalid request")
 	errorInvalidToken          = errors.New("provided token is invalid or expired")
 	errorFailedInstanceJWT     = errors.New("failed to create instance JWT")
-	errorMissingToken          = errors.New("authentication token is missing or improperly formatted. Expected 'Bearer <token>'")
+	errorMissingToken          = errors.New("authentication token is missing or improperly formatted")
 	errorUserNotFound          = errors.New("user not found")
 )
 
@@ -42,9 +43,9 @@ func (m *Middleware) HandlePublicAccess() fiber.Handler {
 				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", err)
 			}
 
-			c.Locals("id", claim.ID)
-			c.Locals("username", claim.Username)
-			c.Locals("email", claim.Email)
+			c.Locals(core.CtxUserID, claim.ID)
+			c.Locals(core.CtxUsername, claim.Username)
+			c.Locals(core.CtxApplicationAccess, claim.Access)
 		}
 
 		return c.Next()
@@ -75,9 +76,10 @@ func (m *Middleware) HandleInternalAccess() fiber.Handler {
 				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", errorUserNotFound)
 			}
 
-			c.Locals("id", claim.ID)
-			c.Locals("username", claim.Username)
-			c.Locals("email", claim.Email)
+			c.Locals(core.CtxUserID, claim.ID)
+			c.Locals(core.CtxUsername, claim.Username)
+			c.Locals(core.CtxUserEmail, claim.Email)
+			c.Locals(core.CtxApplicationAccess, claim.Access)
 		} else {
 			return responses.FailedResponse(c, fiber.StatusForbidden, "Access Denied", errorMissingToken)
 		}

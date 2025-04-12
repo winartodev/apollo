@@ -7,15 +7,15 @@ import (
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/middlewares"
 	"github.com/winartodev/apollo/core/responses"
-	authController "github.com/winartodev/apollo/modules/auth/controllers"
+	controllers2 "github.com/winartodev/apollo/modules/auth/controllers"
 	"github.com/winartodev/apollo/modules/auth/emums"
 	authEntity "github.com/winartodev/apollo/modules/auth/entities"
 )
 
 type AuthHandler struct {
 	middlewares.Middleware
-	VerificationController authController.VerificationControllerItf
-	AuthController         authController.AuthControllerItf
+	VerificationController controllers2.VerificationControllerItf
+	AuthController         controllers2.AuthControllerItf
 }
 
 func NewAuthHandler(handler AuthHandler) AuthHandler {
@@ -63,7 +63,7 @@ func (h *AuthHandler) SignUp(ctx *fiber.Ctx) error {
 func (h *AuthHandler) SignOut(ctx *fiber.Ctx) error {
 	context := ctx.Context()
 
-	id, err := helpers.GetUserIDFromContext(ctx)
+	id, err := helpers.GetUserIDFromFiberContext(ctx)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Failed Sign Out", err)
 	}
@@ -120,12 +120,12 @@ func (h *AuthHandler) ValidateEmailOTP(ctx *fiber.Ctx) error {
 	}
 
 	err := h.VerificationController.VerifyOTP(context, emums.VerificationEmail, email, otp)
-	if err != nil && !errors.Is(err, authController.ErrorOTPAlreadyVerified) {
+	if err != nil && !errors.Is(err, controllers2.ErrorOTPAlreadyVerified) {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
 
-	if errors.Is(err, authController.ErrorOTPAlreadyVerified) {
-		data := authController.ErrorOTPAlreadyVerified.Error()
+	if errors.Is(err, controllers2.ErrorOTPAlreadyVerified) {
+		data := controllers2.ErrorOTPAlreadyVerified.Error()
 		return responses.SuccessResponse(ctx, fiber.StatusOK, "Success", data, nil)
 	}
 
@@ -141,12 +141,12 @@ func (h *AuthHandler) ResendEmailOTP(ctx *fiber.Ctx) error {
 	}
 
 	err := h.VerificationController.ResendOTP(context, emums.VerificationEmail, email)
-	if err != nil && !errors.Is(err, authController.ErrorOTPAlreadyVerified) {
+	if err != nil && !errors.Is(err, controllers2.ErrorOTPAlreadyVerified) {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
 
-	if errors.Is(err, authController.ErrorOTPAlreadyVerified) {
-		data := authController.ErrorOTPAlreadyVerified.Error()
+	if errors.Is(err, controllers2.ErrorOTPAlreadyVerified) {
+		data := controllers2.ErrorOTPAlreadyVerified.Error()
 		return responses.SuccessResponse(ctx, fiber.StatusOK, "Success", data, nil)
 	}
 
@@ -189,12 +189,12 @@ func (h *AuthHandler) ValidatePhoneOTP(ctx *fiber.Ctx) error {
 	}
 
 	err = h.VerificationController.VerifyOTP(context, emums.VerificationPhone, newPhone, otp)
-	if err != nil && !errors.Is(err, authController.ErrorOTPAlreadyVerified) {
+	if err != nil && !errors.Is(err, controllers2.ErrorOTPAlreadyVerified) {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
 
-	if errors.Is(err, authController.ErrorOTPAlreadyVerified) {
-		data := authController.ErrorOTPAlreadyVerified.Error()
+	if errors.Is(err, controllers2.ErrorOTPAlreadyVerified) {
+		data := controllers2.ErrorOTPAlreadyVerified.Error()
 		return responses.SuccessResponse(ctx, fiber.StatusOK, "Success", data, nil)
 	}
 
@@ -215,12 +215,12 @@ func (h *AuthHandler) ResendPhoneOTP(ctx *fiber.Ctx) error {
 	}
 
 	err = h.VerificationController.ResendOTP(context, emums.VerificationPhone, newPhone)
-	if err != nil && !errors.Is(err, authController.ErrorOTPAlreadyVerified) {
+	if err != nil && !errors.Is(err, controllers2.ErrorOTPAlreadyVerified) {
 		return responses.FailedResponse(ctx, fiber.StatusInternalServerError, "Failed to create otp code", err)
 	}
 
-	if errors.Is(err, authController.ErrorOTPAlreadyVerified) {
-		data := authController.ErrorOTPAlreadyVerified.Error()
+	if errors.Is(err, controllers2.ErrorOTPAlreadyVerified) {
+		data := controllers2.ErrorOTPAlreadyVerified.Error()
 		return responses.SuccessResponse(ctx, fiber.StatusOK, "Success", data, nil)
 	}
 

@@ -26,6 +26,11 @@ const (
 	DefaultOrder        = "id"
 
 	OSWindows = "windows"
+
+	CtxUserID            = "user_id"
+	CtxUsername          = "user_username"
+	CtxUserEmail         = "user_email"
+	CtxApplicationAccess = "application_access"
 )
 
 var (

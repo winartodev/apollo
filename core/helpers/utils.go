@@ -2,11 +2,15 @@ package helpers
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/winartodev/apollo/core"
+	cErrors "github.com/winartodev/apollo/core/errors"
+	"github.com/winartodev/apollo/modules/application"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -15,6 +19,7 @@ import (
 	"net/mail"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -22,6 +27,12 @@ import (
 
 const (
 	otpChars = "1234567890"
+	untitled = "untitled"
+)
+
+var (
+	slugInvalidCharsRegex = regexp.MustCompile(`[^a-z0-9-]+`)
+	slugDashesRegex       = regexp.MustCompile(`-+`)
 )
 
 func ReadYAMLFile(path string, out interface{}) error {
@@ -71,14 +82,40 @@ func GetFormValue(ctx *fiber.Ctx, key string, required bool) (value string, erro
 	return value, nil
 }
 
-func GetUserIDFromContext(ctx *fiber.Ctx) (id int64, err error) {
-	if localID, ok := ctx.Locals("id").(int64); ok {
+func GetUserIDFromFiberContext(ctx *fiber.Ctx) (id int64, err error) {
+	if localID, ok := ctx.Locals(core.CtxUserID).(int64); ok {
 		id = localID
 	} else {
 		return 0, errors.New("no user id")
 	}
 
 	return id, nil
+}
+
+func GetApplicationAccessFromFiberContext(ctx *fiber.Ctx) (access *application.Access, err error) {
+	if access, ok := ctx.Locals(core.CtxApplicationAccess).(*application.Access); ok {
+		return access, nil
+	}
+
+	return nil, errors.New("no application access")
+}
+
+func GetUserIDFromContext(ctx context.Context) (id int64, err error) {
+	if localID, ok := ctx.Value(core.CtxUserID).(int64); ok {
+		id = localID
+	} else {
+		return 0, errors.New("no user id")
+	}
+
+	return id, nil
+}
+
+func GetApplicationAccessFromContext(ctx context.Context) (access *application.Access, err error) {
+	if access, ok := ctx.Value(core.CtxApplicationAccess).(*application.Access); ok {
+		return access, nil
+	}
+
+	return nil, errors.New("no application access")
 }
 
 func FormatUnixTime(unixTime int64) *time.Time {
@@ -208,4 +245,46 @@ func NormalizePhoneNumber(phone string) string {
 func PrintJSON(v interface{}) {
 	marshaled, _ := json.MarshalIndent(v, "", "   ")
 	fmt.Println(string(marshaled))
+}
+
+func MakeSlug(text string) string {
+	slug := strings.ToLower(strings.TrimSpace(text))
+	slug = slugInvalidCharsRegex.ReplaceAllString(slug, "-")
+	slug = slugDashesRegex.ReplaceAllString(slug, "-")
+	slug = strings.Trim(slug, "-")
+	if slug == "" {
+		slug = untitled
+	}
+
+	return slug
+}
+
+func IsValidSlug(slug string) cErrors.Errors {
+	if slug == "" {
+		return cErrors.InvalidSlugErr.WithReason("slug is empty")
+	}
+
+	if slug == untitled {
+		return nil
+	}
+
+	if strings.HasPrefix(slug, "-") {
+		return cErrors.InvalidSlugErr.WithReason("slug cannot start with '-'")
+	}
+
+	if strings.HasSuffix(slug, "-") {
+		return cErrors.InvalidSlugErr.WithReason("slug cannot end with '-'")
+	}
+
+	invalidCharsRegex := regexp.MustCompile(`[^a-z0-9-]`)
+	if invalidCharsRegex.MatchString(slug) {
+		return cErrors.InvalidSlugErr.WithReason("slug can only contain lowercase letters, numbers, and single hyphens")
+	}
+
+	consecutiveHyphensRegex := regexp.MustCompile(`--+`)
+	if consecutiveHyphensRegex.MatchString(slug) {
+		return cErrors.InvalidSlugErr.WithReason("slug cannot contain consecutive hyphens")
+	}
+
+	return nil
 }
