@@ -13,6 +13,17 @@ var (
 	slugDashesRegex       = regexp.MustCompile(`-+`)
 )
 
+var (
+	AllowedServiceFields = map[string]bool{
+		"id":         true,
+		"slug":       true,
+		"name":       true,
+		"is_active":  true,
+		"created_by": true,
+		"created_at": true,
+	}
+)
+
 type Service struct {
 	ID          int64      `json:"id"`
 	Slug        string     `json:"slug"`

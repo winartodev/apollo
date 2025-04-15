@@ -21,4 +21,35 @@ const (
 		FROM services 
 		WHERE slug = $1;
 	`
+
+	GetServiceByIDQuery = `
+		SELECT 
+		    id, 
+		    slug, 
+		    name, 
+		    description, 
+		    is_active, 
+		    created_by, 
+		    updated_by, 
+		    created_at, 
+		    updated_at 
+		FROM services 
+		WHERE id = $1;
+	`
+
+	GetServicesQuery = `
+		SELECT 
+		    id, 
+		    slug, 
+		    name, 
+		    description, 
+		    is_active, 
+		    created_by, 
+		    updated_by, 
+		    created_at, 
+		    updated_at 
+		FROM services
+	`
+
+	CountServiceQuery = `SELECT COUNT(*) FROM services;`
 )

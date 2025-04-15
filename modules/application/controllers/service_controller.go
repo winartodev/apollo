@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/winartodev/apollo/core/errors"
+	"github.com/winartodev/apollo/core/helpers"
 	applicaitonEntity "github.com/winartodev/apollo/modules/application/entities"
 	applicationRepo "github.com/winartodev/apollo/modules/application/repository"
 	"time"
@@ -16,6 +17,8 @@ const (
 type ServiceControllerItf interface {
 	CreateService(ctx context.Context, data applicaitonEntity.Service) (res *applicaitonEntity.Service, err errors.Errors)
 	GetServiceBySlug(ctx context.Context, slug string) (res *applicaitonEntity.Service, err errors.Errors)
+	GetServiceByID(ctx context.Context, id int64) (res *applicaitonEntity.Service, err errors.Errors)
+	GetServices(ctx context.Context, paginate helpers.Paginate) (res []applicaitonEntity.Service, total int64, err errors.Errors)
 }
 
 type ServiceController struct {
@@ -64,4 +67,27 @@ func (sc *ServiceController) GetServiceBySlug(ctx context.Context, slug string) 
 	}
 
 	return data, nil
+}
+
+func (sc *ServiceController) GetServiceByID(ctx context.Context, id int64) (res *applicaitonEntity.Service, err errors.Errors) {
+	data, dbErr := sc.ServiceRepo.GetServiceByIDDB(ctx, id)
+	if dbErr != nil {
+		return nil, errors.InternalServerErr(dbErr.Error())
+	}
+
+	return data, nil
+}
+
+func (sc *ServiceController) GetServices(ctx context.Context, paginate helpers.Paginate) (res []applicaitonEntity.Service, total int64, err errors.Errors) {
+	total, dbErr := sc.ServiceRepo.GetTotalServiceDB(ctx)
+	if dbErr != nil {
+		return nil, 0, errors.InternalServerErr(dbErr.Error())
+	}
+
+	data, dbErr := sc.ServiceRepo.GetServicesDB(ctx, paginate)
+	if dbErr != nil {
+		return nil, 0, errors.InternalServerErr(dbErr.Error())
+	}
+
+	return data, total, nil
 }

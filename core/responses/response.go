@@ -1,9 +1,7 @@
 package responses
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/winartodev/apollo/core"
 	"github.com/winartodev/apollo/core/errors"
 	"github.com/winartodev/apollo/core/helpers"
 )
@@ -24,20 +22,6 @@ type Response struct {
 	Header   Header      `json:"header"`
 	Data     interface{} `json:"data"`
 	Metadata interface{} `json:"metadata"`
-}
-
-type PaginateResponse struct {
-	TotalItems  int64  `json:"total_items"`
-	TotalPages  int64  `json:"total_pages"`
-	CurrentPage int64  `json:"current_page"`
-	NextPage    *int64 `json:"next_page,omitempty"`
-	PrevPage    *int64 `json:"prev_page,omitempty"`
-	Links       struct {
-		First    string `json:"first,omitempty"`
-		Last     string `json:"last,omitempty"`
-		Next     string `json:"next,omitempty"`
-		Previous string `json:"previous,omitempty"`
-	} `json:"links,omitempty"`
 }
 
 func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interface{}, metadata interface{}) error {
@@ -78,6 +62,27 @@ func SuccessResponseV2(c *fiber.Ctx, statusCode int, data interface{}, metadata 
 	})
 }
 
+func SuccessResponseWithPaginate(c *fiber.Ctx, statusCode int, data interface{}, totalItem int64, paginate *helpers.Paginate, metadata interface{}) error {
+	var paginateResponse helpers.PaginateResponse
+	paginationMetadata := paginateResponse.NewFromContext(c, totalItem, paginate)
+	finalMetadata := map[string]interface{}{
+		"pagination": paginationMetadata,
+	}
+
+	if metadata != nil {
+		if existingMetadata, ok := metadata.(map[string]interface{}); ok {
+			for key, value := range existingMetadata {
+				finalMetadata[key] = value
+			}
+		} else {
+			// Handle the case where the provided metadata is not a map
+			finalMetadata["additional_metadata"] = metadata
+		}
+	}
+
+	return SuccessResponseV2(c, statusCode, data, finalMetadata)
+}
+
 func FailedResponseV2(c *fiber.Ctx, err errors.Errors) error {
 	var data = err.Error()
 	return c.Status(data.StatusCode).JSON(Response{
@@ -88,72 +93,4 @@ func FailedResponseV2(c *fiber.Ctx, err errors.Errors) error {
 		},
 		Data: nil,
 	})
-}
-
-func generateLink(link string, page int64, limit int64) string {
-	if link == "" {
-		return ""
-	}
-
-	return fmt.Sprintf("%s?page=%d&limit=%d", link, page, limit)
-}
-
-func BuildPaginate(totalItems int64, link string, paginate *helpers.Paginate) *PaginateResponse {
-	var limit = *paginate.Limit
-	var page = *paginate.Offset
-
-	if page <= 0 {
-		page = core.DefaultPage
-	}
-
-	if limit < 1 || limit > core.MaxLimit {
-		limit = core.DefaultLimit
-	}
-
-	totalPages := (totalItems + limit - 1) / limit
-
-	var nextPage, prevPage *int64
-	if page < totalPages {
-		nextPageVal := page + 1
-		nextPage = &nextPageVal
-	}
-
-	if page > 1 {
-		prevPageVal := page - 1
-		prevPage = &prevPageVal
-	}
-
-	firstLink := generateLink(link, 1, limit)
-	lastLink := generateLink(link, totalPages, limit)
-
-	var nextLink, prevLink string
-
-	if nextPage != nil {
-		nextLink = generateLink(link, *nextPage, limit)
-	}
-
-	if prevPage != nil {
-		prevLink = generateLink(link, *prevPage, limit)
-	}
-
-	result := PaginateResponse{
-		TotalItems:  totalItems,
-		TotalPages:  totalPages,
-		CurrentPage: page,
-		NextPage:    nextPage,
-		PrevPage:    prevPage,
-		Links: struct {
-			First    string `json:"first,omitempty"`
-			Last     string `json:"last,omitempty"`
-			Next     string `json:"next,omitempty"`
-			Previous string `json:"previous,omitempty"`
-		}{
-			First:    firstLink,
-			Last:     lastLink,
-			Next:     nextLink,
-			Previous: prevLink,
-		},
-	}
-
-	return &result
 }

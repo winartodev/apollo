@@ -7,6 +7,8 @@ const (
 	APOLLO002 = "APOLLO_002"
 	APOLLO005 = "APOLLO_005"
 	APOLLO006 = "APOLLO_006"
+	APOLLO007 = "APOLLO_007"
+	APOLLO008 = "APOLLO_008"
 )
 
 var (
@@ -15,6 +17,8 @@ var (
 	InternalServerErr         = New(http.StatusInternalServerError, APOLLO005, "We could not process your request due to malformed request, please check again").WithReason
 	AuthorizationErr          = New(http.StatusUnauthorized, APOLLO005, "Authorization required").WithReason
 	FailedParseRequestBodyErr = New(http.StatusUnauthorized, APOLLO006, "Failed parse request body").WithReason
+	BadRequestWithReasonErr   = New(http.StatusBadRequest, APOLLO007, "Bad request").WithReason
+	DecodeQueryParamErr       = New(http.StatusBadRequest, APOLLO008, "Bad request").WithReason("failed to decode query parameters")
 )
 
 type Errors interface {
