@@ -52,4 +52,15 @@ const (
 	`
 
 	CountServiceQuery = `SELECT COUNT(*) FROM services;`
+
+	UpdateServiceQuery = `
+		UPDATE services 
+		SET slug = $1, 
+			name = $2,
+			description = $3,
+			is_active = $4,
+			updated_by = $5,
+			updated_at = $6
+		WHERE id = $7;
+	`
 )

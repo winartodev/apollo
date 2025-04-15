@@ -28,7 +28,7 @@ func NewUserHandler(handler UserHandler) UserHandler {
 
 func (h *UserHandler) GetCurrentUser(ctx *fiber.Ctx) error {
 	context := ctx.Context()
-	id, err := helpers.GetUserIDFromContext(ctx)
+	id, err := helpers.GetUserIDFromFiberContext(ctx)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Failed Get Current User", userNotLoggedIn)
 	}

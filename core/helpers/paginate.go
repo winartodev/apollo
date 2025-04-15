@@ -28,7 +28,7 @@ func (f *Paginate) NewFromContext(ctx *fiber.Ctx) (res *Paginate, err errors.Err
 	res = f
 	ctxErr := ctx.QueryParser(res)
 	if ctxErr != nil {
-		return nil, errors.DecodeQueryParamErr
+		return nil, errors.BadRequestErr.WithReason("failed to decode query parameters")
 	}
 
 	res.Validate()

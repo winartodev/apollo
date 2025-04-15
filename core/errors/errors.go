@@ -5,6 +5,8 @@ import "net/http"
 const (
 	APOLLO001 = "APOLLO_001"
 	APOLLO002 = "APOLLO_002"
+	APOLLO003 = "APOLLO_003"
+	APOLLO004 = "APOLLO_004"
 	APOLLO005 = "APOLLO_005"
 	APOLLO006 = "APOLLO_006"
 	APOLLO007 = "APOLLO_007"
@@ -14,11 +16,12 @@ const (
 var (
 	DataAlreadyExistsErr      = New(http.StatusOK, APOLLO001, "Data already exists").WithReason
 	MissingRequestBodyErr     = New(http.StatusBadRequest, APOLLO002, "Request mismatch ")
-	InternalServerErr         = New(http.StatusInternalServerError, APOLLO005, "We could not process your request due to malformed request, please check again").WithReason
-	AuthorizationErr          = New(http.StatusUnauthorized, APOLLO005, "Authorization required").WithReason
-	FailedParseRequestBodyErr = New(http.StatusUnauthorized, APOLLO006, "Failed parse request body").WithReason
-	BadRequestWithReasonErr   = New(http.StatusBadRequest, APOLLO007, "Bad request").WithReason
-	DecodeQueryParamErr       = New(http.StatusBadRequest, APOLLO008, "Bad request").WithReason("failed to decode query parameters")
+	InternalServerErr         = New(http.StatusInternalServerError, APOLLO003, "We could not process your request due to malformed request, please check again").WithReason
+	AuthorizationErr          = New(http.StatusUnauthorized, APOLLO004, "Authorization required")
+	FailedParseRequestBodyErr = New(http.StatusUnauthorized, APOLLO005, "Failed parse request body")
+	BadRequestErr             = New(http.StatusBadRequest, APOLLO006, "Bad request")
+	DataNotFoundErr           = New(http.StatusNotFound, APOLLO007, "Data Not Found")
+	InvalidUserID             = New(http.StatusUnauthorized, APOLLO008, "Invalid user ID")
 )
 
 type Errors interface {

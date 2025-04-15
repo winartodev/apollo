@@ -24,6 +24,15 @@ type Response struct {
 	Metadata interface{} `json:"metadata"`
 }
 
+type UpdateResponseData struct {
+	Message         string        `json:"message,omitempty"`
+	TotalData       int64         `json:"total_data"`
+	SuccessData     int64         `json:"success_data"`
+	FailData        int64         `json:"fail_data"`
+	SuccessRowsData []interface{} `json:"success_rows_data,omitempty"`
+	FailedRowsData  []interface{} `json:"failed_rows_data,omitempty"`
+}
+
 func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interface{}, metadata interface{}) error {
 	return c.Status(statusCode).JSON(Response{
 		Header: Header{

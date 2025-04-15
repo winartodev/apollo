@@ -63,7 +63,7 @@ func (h *AuthHandler) SignUp(ctx *fiber.Ctx) error {
 func (h *AuthHandler) SignOut(ctx *fiber.Ctx) error {
 	context := ctx.Context()
 
-	id, err := helpers.GetUserIDFromContext(ctx)
+	id, err := helpers.GetUserIDFromFiberContext(ctx)
 	if err != nil {
 		return responses.FailedResponse(ctx, fiber.StatusBadRequest, "Failed Sign Out", err)
 	}

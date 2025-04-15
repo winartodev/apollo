@@ -14,6 +14,7 @@ type ServiceRepositoryItf interface {
 	GetServiceByIDDB(ctx context.Context, id int64) (res *applicationEntity.Service, err error)
 	GetServicesDB(ctx context.Context, filter helpers.Paginate) (res []applicationEntity.Service, err error)
 	GetTotalServiceDB(ctx context.Context) (res int64, err error)
+	UpdateServiceByIDDB(ctx context.Context, id int64, data applicationEntity.Service) (err error)
 }
 
 type ServiceRepository struct {
@@ -159,4 +160,29 @@ func (sr *ServiceRepository) GetTotalServiceDB(ctx context.Context) (res int64, 
 	}
 
 	return res, nil
+}
+
+func (sr *ServiceRepository) UpdateServiceByIDDB(ctx context.Context, id int64, data applicationEntity.Service) (err error) {
+	updatedAtUnix := data.UpdatedAt.Unix()
+
+	stmt, err := sr.DB.PrepareContext(ctx, UpdateServiceQuery)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+	_, err = stmt.ExecContext(ctx,
+		data.Slug,
+		data.Name,
+		data.Description,
+		data.IsActive,
+		data.UpdatedBy,
+		updatedAtUnix,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

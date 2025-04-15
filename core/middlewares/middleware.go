@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/winartodev/apollo/core"
 	"github.com/winartodev/apollo/core/helpers"
 	"github.com/winartodev/apollo/core/responses"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
@@ -42,9 +43,9 @@ func (m *Middleware) HandlePublicAccess() fiber.Handler {
 				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", err)
 			}
 
-			c.Locals("id", claim.ID)
-			c.Locals("username", claim.Username)
-			c.Locals("email", claim.Email)
+			c.Locals(core.CtxUserID, claim.ID)
+			c.Locals(core.CtxUsername, claim.Username)
+			c.Locals(core.CtxUserEmail, claim.Email)
 		}
 
 		return c.Next()
@@ -75,9 +76,9 @@ func (m *Middleware) HandleInternalAccess() fiber.Handler {
 				return responses.FailedResponse(c, fiber.StatusUnauthorized, "Unauthorized", errorUserNotFound)
 			}
 
-			c.Locals("id", claim.ID)
-			c.Locals("username", claim.Username)
-			c.Locals("email", claim.Email)
+			c.Locals(core.CtxUserID, claim.ID)
+			c.Locals(core.CtxUsername, claim.Username)
+			c.Locals(core.CtxUserEmail, claim.Email)
 		} else {
 			return responses.FailedResponse(c, fiber.StatusForbidden, "Access Denied", errorMissingToken)
 		}
