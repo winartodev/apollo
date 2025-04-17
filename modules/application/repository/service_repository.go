@@ -64,6 +64,7 @@ func (sr *ServiceRepository) GetServiceBySlugDB(ctx context.Context, slug string
 		slug,
 	).Scan(
 		&res.ID,
+		&res.ApplicationID,
 		&res.Slug,
 		&res.Name,
 		&res.Description,
@@ -94,6 +95,7 @@ func (sr *ServiceRepository) GetServiceByIDDB(ctx context.Context, id int64) (re
 		id,
 	).Scan(
 		&res.ID,
+		&res.ApplicationID,
 		&res.Slug,
 		&res.Name,
 		&res.Description,
@@ -132,6 +134,7 @@ func (sr *ServiceRepository) GetServicesDB(ctx context.Context, filter helpers.P
 		data := applicationEntity.Service{}
 		err = rows.Scan(
 			&data.ID,
+			&data.ApplicationID,
 			&data.Slug,
 			&data.Name,
 			&data.Description,

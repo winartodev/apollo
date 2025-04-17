@@ -8,6 +8,7 @@ import (
 	"github.com/winartodev/apollo/core"
 	"github.com/winartodev/apollo/core/configs"
 	"github.com/winartodev/apollo/core/helpers"
+	"github.com/winartodev/apollo/modules/application"
 	authEnum "github.com/winartodev/apollo/modules/auth/emums"
 	authEntity "github.com/winartodev/apollo/modules/auth/entities"
 	userController "github.com/winartodev/apollo/modules/user/controllers"
@@ -56,7 +57,7 @@ func (ac *AuthController) SignIn(ctx context.Context, data *authEntity.SignInReq
 		return nil, err
 	}
 
-	token, err := jwt.GenerateToken(user)
+	token, err := jwt.GenerateToken(user, data.Application)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +156,15 @@ func (ac *AuthController) RefreshToken(ctx context.Context, providedRefreshToken
 		return nil, errors.New("invalid or expired refresh token")
 	}
 
+	var access *application.Access
+	accessMap, ok := claims["access"].(map[string]interface{})
+	if accessMap != nil && ok {
+		access = &application.Access{
+			ID:    application.ID(int64(accessMap["id"].(float64))),
+			Scope: application.Scope(int64(accessMap["scope"].(float64))),
+		}
+	}
+
 	userID, ok := claims["id"].(float64)
 	if !ok {
 		return nil, errors.New("invalid refresh token")
@@ -174,7 +184,7 @@ func (ac *AuthController) RefreshToken(ctx context.Context, providedRefreshToken
 		return nil, err
 	}
 
-	token, err := jwt.GenerateToken(user)
+	token, err := jwt.GenerateToken(user, access)
 	if err != nil {
 		return nil, err
 	}

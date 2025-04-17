@@ -3,6 +3,7 @@ package entities
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/winartodev/apollo/core/helpers"
+	"github.com/winartodev/apollo/modules/application"
 )
 
 type SignUpRequest struct {
@@ -42,8 +43,9 @@ func (sur *SignUpRequest) BuildFromValue(ctx *fiber.Ctx) (res *SignUpRequest, er
 }
 
 type SignInRequest struct {
-	Email    string `json:"email" form:"email"`
-	Password string `json:"password" form:"password"`
+	Email       string `json:"email" form:"email"`
+	Password    string `json:"password" form:"password"`
+	Application *application.Access
 }
 
 func (sir *SignInRequest) BuildFromValue(ctx *fiber.Ctx) (res *SignInRequest, err error) {
@@ -70,4 +72,5 @@ type AuthResponse struct {
 
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token"`
+	Application  *application.Access
 }

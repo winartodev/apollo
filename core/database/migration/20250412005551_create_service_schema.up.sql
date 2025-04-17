@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS services (
     name VARCHAR(50) NOT NULL UNIQUE,
     is_active BOOL DEFAULT TRUE,
     description TEXT DEFAULT  '',
-    created_by INT REFERENCES users(id) NOT NULL,
-    updated_by INT REFERENCES users(id) NOT NULL,
+    created_by INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    updated_by INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at BIGINT DEFAULT 0,
     updated_at BIGINT DEFAULT 0
 );

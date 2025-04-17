@@ -14,9 +14,11 @@ type RepositoryDependency struct {
 }
 
 type Repository struct {
-	UserRepository         userRepo.UserRepositoryItf
-	VerificationRepository authRepo.VerificationRepositoryItf
-	ServiceRepository      applicationRepo.ServiceRepositoryItf
+	UserRepository            userRepo.UserRepositoryItf
+	UserApplicationRepository userRepo.UserApplicationRepositoryItf
+	VerificationRepository    authRepo.VerificationRepositoryItf
+	ServiceRepository         applicationRepo.ServiceRepositoryItf
+	ApplicationRepository     applicationRepo.ApplicationRepositoryItf
 }
 
 func NewRepository(dependency RepositoryDependency) *Repository {
@@ -25,14 +27,23 @@ func NewRepository(dependency RepositoryDependency) *Repository {
 	})
 
 	newUserRepository := userRepo.NewUserRepository(dependency.DB)
+	newUserApplicationRepository := userRepo.NewUserApplicationRepository(userRepo.UserApplicationRepository{
+		DB: dependency.DB,
+	})
 
 	newServiceRepo := applicationRepo.NewServiceRepository(applicationRepo.ServiceRepository{
 		DB: dependency.DB,
 	})
 
+	newApplicationRepo := applicationRepo.NewApplicationRepository(applicationRepo.ApplicationRepository{
+		DB: dependency.DB,
+	})
+
 	return &Repository{
-		VerificationRepository: newVerificationRepo,
-		UserRepository:         newUserRepository,
-		ServiceRepository:      newServiceRepo,
+		VerificationRepository:    newVerificationRepo,
+		UserRepository:            newUserRepository,
+		UserApplicationRepository: newUserApplicationRepository,
+		ServiceRepository:         newServiceRepo,
+		ApplicationRepository:     newApplicationRepo,
 	}
 }

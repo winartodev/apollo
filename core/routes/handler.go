@@ -16,9 +16,11 @@ type HandlerDependency struct {
 }
 
 type Handler struct {
-	AuthHandler    authHandler.AuthHandler
-	UserHandler    userHandler.UserHandler
-	ServiceHandler applicationHandler.ServiceHandler
+	AuthHandler               authHandler.AuthHandler
+	AuthApolloInternalHandler authHandler.AuthApolloInternalHandler
+	UserHandler               userHandler.UserHandler
+	ServiceHandler            applicationHandler.ServiceHandler
+	ApplicationHandler        applicationHandler.ApplicationHandler
 }
 
 func NewHandler(dependency HandlerDependency) *Handler {
@@ -34,6 +36,13 @@ func NewHandler(dependency HandlerDependency) *Handler {
 		AuthController:         controller.AuthController,
 	})
 
+	newAuthApolloInternalHandler := authHandler.NewAuthApolloInternalHandler(authHandler.AuthApolloInternalHandler{
+		Middleware:            middleware,
+		AuthController:        controller.AuthController,
+		ApplicationController: controller.ApplicationController,
+		UserController:        controller.UserController,
+	})
+
 	newUserHandler := userHandler.NewUserHandler(userHandler.UserHandler{
 		Middleware:     middleware,
 		UserController: controller.UserController,
@@ -44,10 +53,17 @@ func NewHandler(dependency HandlerDependency) *Handler {
 		ServiceController: controller.ServiceController,
 	})
 
+	newApplicationHandler := applicationHandler.NewApplicationHandler(applicationHandler.ApplicationHandler{
+		Middleware:            middleware,
+		ApplicationController: controller.ApplicationController,
+	})
+
 	return &Handler{
-		AuthHandler:    newAuthHandler,
-		UserHandler:    newUserHandler,
-		ServiceHandler: newServiceHandler,
+		AuthHandler:               newAuthHandler,
+		AuthApolloInternalHandler: newAuthApolloInternalHandler,
+		UserHandler:               newUserHandler,
+		ServiceHandler:            newServiceHandler,
+		ApplicationHandler:        newApplicationHandler,
 	}
 }
 
@@ -58,8 +74,10 @@ type RegisterHandlerItf interface {
 func GetRegisters(handler *Handler) []RegisterHandlerItf {
 	return []RegisterHandlerItf{
 		&handler.AuthHandler,
+		&handler.AuthApolloInternalHandler,
 		&handler.UserHandler,
 		&handler.ServiceHandler,
+		&handler.ApplicationHandler,
 	}
 }
 

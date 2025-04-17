@@ -19,13 +19,15 @@ type Controller struct {
 	VerificationController authController.VerificationControllerItf
 	AuthController         authController.AuthControllerItf
 	ServiceController      applicationController.ServiceControllerItf
+	ApplicationController  applicationController.ApplicationControllerItf
 }
 
 func NewController(dependency ControllerDependency) *Controller {
 	repository := dependency.Repository
 
 	newUserController := userController.NewUserController(userController.UserController{
-		UserRepository: repository.UserRepository,
+		UserApplicationRepository: repository.UserApplicationRepository,
+		UserRepository:            repository.UserRepository,
 	})
 
 	newVerificationController := authController.NewVerificationController(authController.VerificationController{
@@ -45,10 +47,15 @@ func NewController(dependency ControllerDependency) *Controller {
 		ServiceRepo: repository.ServiceRepository,
 	})
 
+	newApplicationController := applicationController.NewApplicationController(applicationController.ApplicationController{
+		ApplicationRepo: repository.ApplicationRepository,
+	})
+
 	return &Controller{
 		UserController:         newUserController,
 		VerificationController: newVerificationController,
 		AuthController:         newAuthController,
 		ServiceController:      newServiceController,
+		ApplicationController:  newApplicationController,
 	}
 }

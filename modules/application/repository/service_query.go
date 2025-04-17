@@ -10,6 +10,7 @@ const (
 	GetServiceBySlugQuery = `
 		SELECT 
 		    id, 
+		    application_id,
 		    slug, 
 		    name, 
 		    description, 
@@ -25,6 +26,7 @@ const (
 	GetServiceByIDQuery = `
 		SELECT 
 		    id, 
+			application_id,
 		    slug, 
 		    name, 
 		    description, 
@@ -40,6 +42,7 @@ const (
 	GetServicesQuery = `
 		SELECT 
 		    id, 
+			application_id,
 		    slug, 
 		    name, 
 		    description, 

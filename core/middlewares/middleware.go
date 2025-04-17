@@ -45,7 +45,7 @@ func (m *Middleware) HandlePublicAccess() fiber.Handler {
 
 			c.Locals(core.CtxUserID, claim.ID)
 			c.Locals(core.CtxUsername, claim.Username)
-			c.Locals(core.CtxUserEmail, claim.Email)
+			c.Locals(core.CtxApplicationAccess, claim.Access)
 		}
 
 		return c.Next()
@@ -79,6 +79,7 @@ func (m *Middleware) HandleInternalAccess() fiber.Handler {
 			c.Locals(core.CtxUserID, claim.ID)
 			c.Locals(core.CtxUsername, claim.Username)
 			c.Locals(core.CtxUserEmail, claim.Email)
+			c.Locals(core.CtxApplicationAccess, claim.Access)
 		} else {
 			return responses.FailedResponse(c, fiber.StatusForbidden, "Access Denied", errorMissingToken)
 		}
