@@ -48,7 +48,10 @@ func NewController(dependency ControllerDependency) *Controller {
 	})
 
 	newApplicationController := applicationController.NewApplicationController(applicationController.ApplicationController{
-		ApplicationRepo: repository.ApplicationRepository,
+		Tx:                   repository.DBTransact,
+		ApplicationRepo:      repository.ApplicationRepository,
+		ApplicationScopeRepo: repository.ApplicationScopeRepository,
+		UserApplicationRepo:  repository.UserApplicationRepository,
 	})
 
 	return &Controller{

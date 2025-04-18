@@ -5,23 +5,23 @@ import (
 	"fmt"
 	"github.com/winartodev/apollo/core/errors"
 	"github.com/winartodev/apollo/core/helpers"
-	applicaitonEntity "github.com/winartodev/apollo/modules/application/entities"
+	applicationEntity "github.com/winartodev/apollo/modules/application/entities"
 	applicationRepo "github.com/winartodev/apollo/modules/application/repository"
 	"time"
 )
 
 const (
-	slugAlreadyExists     = "slug %s already exists"
-	serviceNotFoundWithID = "service not found with id %d"
+	serviceSlugAlreadyExists = "service with slug %s already exists"
+	serviceNotFoundWithID    = "service not found with id %d"
 )
 
 type ServiceControllerItf interface {
-	CreateService(ctx context.Context, data applicaitonEntity.Service) (res *applicaitonEntity.Service, err errors.Errors)
-	GetServiceBySlug(ctx context.Context, slug string) (res *applicaitonEntity.Service, err errors.Errors)
-	GetServiceByID(ctx context.Context, id int64) (res *applicaitonEntity.Service, err errors.Errors)
-	GetServices(ctx context.Context, paginate helpers.Paginate) (res []applicaitonEntity.Service, total int64, err errors.Errors)
-	UpdateServiceByID(ctx context.Context, id int64, data applicaitonEntity.Service) (res *applicaitonEntity.Service, err errors.Errors)
-	ActivateServiceByID(ctx context.Context, id int64, isActive bool) (res *applicaitonEntity.Service, err errors.Errors)
+	CreateService(ctx context.Context, data applicationEntity.Service) (res *applicationEntity.Service, err errors.Errors)
+	GetServiceBySlug(ctx context.Context, slug string) (res *applicationEntity.Service, err errors.Errors)
+	GetServiceByID(ctx context.Context, id int64) (res *applicationEntity.Service, err errors.Errors)
+	GetServices(ctx context.Context, paginate helpers.Paginate) (res []applicationEntity.Service, total int64, err errors.Errors)
+	UpdateServiceByID(ctx context.Context, id int64, data applicationEntity.Service) (res *applicationEntity.Service, err errors.Errors)
+	ActivateServiceByID(ctx context.Context, id int64, isActive bool) (res *applicationEntity.Service, err errors.Errors)
 }
 
 type ServiceController struct {
@@ -34,8 +34,8 @@ func NewServiceController(controller ServiceController) ServiceControllerItf {
 	}
 }
 
-func (sc *ServiceController) CreateService(ctx context.Context, data applicaitonEntity.Service) (res *applicaitonEntity.Service, err errors.Errors) {
-	err = applicaitonEntity.GenerateServiceSlug(&data)
+func (sc *ServiceController) CreateService(ctx context.Context, data applicationEntity.Service) (res *applicationEntity.Service, err errors.Errors) {
+	err = applicationEntity.GenerateServiceSlug(&data)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (sc *ServiceController) CreateService(ctx context.Context, data applicaiton
 	}
 
 	if dataExists != nil {
-		return nil, errors.DataAlreadyExistsErr(fmt.Sprintf(slugAlreadyExists, data.Slug))
+		return nil, errors.DataAlreadyExistsErr(fmt.Sprintf(serviceSlugAlreadyExists, data.Slug))
 	}
 
 	now := time.Now()
@@ -63,7 +63,7 @@ func (sc *ServiceController) CreateService(ctx context.Context, data applicaiton
 	return &data, nil
 }
 
-func (sc *ServiceController) GetServiceBySlug(ctx context.Context, slug string) (res *applicaitonEntity.Service, err errors.Errors) {
+func (sc *ServiceController) GetServiceBySlug(ctx context.Context, slug string) (res *applicationEntity.Service, err errors.Errors) {
 	data, dbErr := sc.ServiceRepo.GetServiceBySlugDB(ctx, slug)
 	if dbErr != nil {
 		return nil, errors.InternalServerErr(dbErr.Error())
@@ -72,7 +72,7 @@ func (sc *ServiceController) GetServiceBySlug(ctx context.Context, slug string) 
 	return data, nil
 }
 
-func (sc *ServiceController) GetServiceByID(ctx context.Context, id int64) (res *applicaitonEntity.Service, err errors.Errors) {
+func (sc *ServiceController) GetServiceByID(ctx context.Context, id int64) (res *applicationEntity.Service, err errors.Errors) {
 	data, dbErr := sc.ServiceRepo.GetServiceByIDDB(ctx, id)
 	if dbErr != nil {
 		return nil, errors.InternalServerErr(dbErr.Error())
@@ -81,7 +81,7 @@ func (sc *ServiceController) GetServiceByID(ctx context.Context, id int64) (res 
 	return data, nil
 }
 
-func (sc *ServiceController) GetServices(ctx context.Context, paginate helpers.Paginate) (res []applicaitonEntity.Service, total int64, err errors.Errors) {
+func (sc *ServiceController) GetServices(ctx context.Context, paginate helpers.Paginate) (res []applicationEntity.Service, total int64, err errors.Errors) {
 	total, dbErr := sc.ServiceRepo.GetTotalServiceDB(ctx)
 	if dbErr != nil {
 		return nil, 0, errors.InternalServerErr(dbErr.Error())
@@ -95,7 +95,7 @@ func (sc *ServiceController) GetServices(ctx context.Context, paginate helpers.P
 	return data, total, nil
 }
 
-func (sc *ServiceController) UpdateServiceByID(ctx context.Context, id int64, data applicaitonEntity.Service) (res *applicaitonEntity.Service, err errors.Errors) {
+func (sc *ServiceController) UpdateServiceByID(ctx context.Context, id int64, data applicationEntity.Service) (res *applicationEntity.Service, err errors.Errors) {
 	now := time.Now()
 	userID, ctxErr := helpers.GetUserIDFromContext(ctx)
 	if ctxErr != nil {
@@ -117,7 +117,7 @@ func (sc *ServiceController) UpdateServiceByID(ctx context.Context, id int64, da
 
 	updateData := *oldData
 
-	err = applicaitonEntity.GenerateServiceSlug(&data)
+	err = applicationEntity.GenerateServiceSlug(&data)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (sc *ServiceController) UpdateServiceByID(ctx context.Context, id int64, da
 	}
 
 	if dataExists != nil && dataExists.ID != id {
-		return nil, errors.DataAlreadyExistsErr(fmt.Sprintf(slugAlreadyExists, data.Slug))
+		return nil, errors.DataAlreadyExistsErr(fmt.Sprintf(serviceSlugAlreadyExists, data.Slug))
 	}
 
 	updateData.Name = data.Name
@@ -145,7 +145,7 @@ func (sc *ServiceController) UpdateServiceByID(ctx context.Context, id int64, da
 	return &updateData, nil
 }
 
-func (sc *ServiceController) ActivateServiceByID(ctx context.Context, id int64, isActive bool) (res *applicaitonEntity.Service, err errors.Errors) {
+func (sc *ServiceController) ActivateServiceByID(ctx context.Context, id int64, isActive bool) (res *applicationEntity.Service, err errors.Errors) {
 	now := time.Now()
 	userID, ctxErr := helpers.GetUserIDFromContext(ctx)
 	if ctxErr != nil {

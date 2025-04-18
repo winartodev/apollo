@@ -9,7 +9,7 @@ import (
 )
 
 type ApplicationRepositoryItf interface {
-	CreateApplicationDB(ctx context.Context, data applicationEntity.Application) (id int64, err error)
+	CreateApplicationTxDB(ctx context.Context, tx *sql.Tx, data applicationEntity.Application) (id *int64, err error)
 	UpdateApplicationByIDDB(ctx context.Context, id int64, data applicationEntity.Application) (err error)
 	GetApplicationsDB(ctx context.Context, filter helpers.Paginate) (res []applicationEntity.Application, err error)
 	GetApplicationByIDDB(ctx context.Context, id int64) (res *applicationEntity.Application, err error)
@@ -27,9 +27,37 @@ func NewApplicationRepository(repository ApplicationRepository) ApplicationRepos
 	}
 }
 
-func (ar *ApplicationRepository) CreateApplicationDB(ctx context.Context, data applicationEntity.Application) (id int64, err error) {
-	//TODO implement me
-	panic("implement me")
+func (ar *ApplicationRepository) CreateApplicationTxDB(ctx context.Context, tx *sql.Tx, data applicationEntity.Application) (id *int64, err error) {
+	createdAtUnix := data.CreatedAt.Unix()
+	updatedAtUnix := data.UpdatedAt.Unix()
+
+	var stmt *sql.Stmt
+	if tx != nil {
+		stmt, err = tx.PrepareContext(ctx, InsertApplicationQuery)
+	} else {
+		stmt, err = ar.DB.PrepareContext(ctx, data.Name)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+
+	err = stmt.QueryRowContext(ctx,
+		data.Slug,
+		data.Name,
+		data.IsActive,
+		data.CreatedBy,
+		data.UpdatedBy,
+		createdAtUnix,
+		updatedAtUnix,
+	).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	return id, nil
 }
 
 func (ar *ApplicationRepository) GetApplicationsDB(ctx context.Context, filter helpers.Paginate) (res []applicationEntity.Application, err error) {
@@ -91,6 +119,10 @@ func (ar *ApplicationRepository) GetApplicationByIDDB(ctx context.Context, id in
 		return nil, err
 	}
 
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
 	data.CreatedAt = helpers.FormatUnixTime(createdAtUnix)
 	data.UpdatedAt = helpers.FormatUnixTime(updatedAtUnix)
 
@@ -98,12 +130,37 @@ func (ar *ApplicationRepository) GetApplicationByIDDB(ctx context.Context, id in
 }
 
 func (ar *ApplicationRepository) GetApplicationBySlugDB(ctx context.Context, slug string) (res *applicationEntity.Application, err error) {
-	//TODO implement me
-	panic("implement me")
+	var createdAtUnix int64
+	var updatedAtUnix int64
+	var data applicationEntity.Application
+	err = ar.DB.QueryRowContext(ctx,
+		GetApplicationBySlugQuery,
+		slug,
+	).Scan(
+		&data.ID,
+		&data.Slug,
+		&data.Name,
+		&data.IsActive,
+		&data.CreatedBy,
+		&data.UpdatedBy,
+		&createdAtUnix,
+		&updatedAtUnix,
+	)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	data.CreatedAt = helpers.FormatUnixTime(createdAtUnix)
+	data.UpdatedAt = helpers.FormatUnixTime(updatedAtUnix)
+
+	return &data, nil
 }
 
 func (ar *ApplicationRepository) UpdateApplicationByIDDB(ctx context.Context, id int64, data applicationEntity.Application) (err error) {
-	//TODO implement me
 	panic("implement me")
 }
 

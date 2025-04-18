@@ -4,27 +4,36 @@ CREATE TABLE IF NOT EXISTS applications (
     slug VARCHAR(55) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL,
     is_active BOOL NOT NULL DEFAULT TRUE,
-    created_by INT NOT NULL REFERENCES users(id) ,
-    updated_by INT NOT NULL REFERENCES users(id) ,
+    created_by INT NOT NULL REFERENCES users(id),
+    updated_by INT NOT NULL REFERENCES users(id),
+    created_at BIGINT DEFAULT 0,
+    updated_at BIGINT DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS scopes (
+    id SERIAL PRIMARY KEY,
+    slug VARCHAR(55) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
     created_at BIGINT DEFAULT 0,
     updated_at BIGINT DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS application_scope (
-    id SERIAL PRIMARY KEY,
-    slug VARCHAR(55) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL,
+    id SERIAL UNIQUE,
+    application_id INT NOT NULL REFERENCES applications(id) ON DELETE RESTRICT,
+    scope_id INT NOT NULL REFERENCES scopes(id) ON DELETE RESTRICT,
+    is_active BOOL NOT NULL DEFAULT TRUE,
     created_by INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     updated_by INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     created_at BIGINT DEFAULT 0,
-    updated_at BIGINT DEFAULT 0
+    updated_at BIGINT DEFAULT 0,
+    PRIMARY KEY (application_id, scope_id)
 );
 
 CREATE TABLE IF NOT EXISTS user_applications (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    application_id INT NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
-    scope_id INT NOT NULL REFERENCES application_scope(id)  ON DELETE CASCADE,
-    PRIMARY KEY (user_id, application_id, scope_id)
+    application_scope_id INT NOT NULL REFERENCES application_scope(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, application_scope_id)
 );
 
 -- Create ALTER TABLE
@@ -38,7 +47,10 @@ CREATE INDEX IF NOT EXISTS idx_applications_active_created ON applications(is_ac
 CREATE INDEX IF NOT EXISTS idx_applications_created_by ON applications(created_by);
 CREATE INDEX IF NOT EXISTS idx_applications_updated_by ON applications(updated_by);
 
-CREATE INDEX IF NOT EXISTS idx_application_scope_slug ON application_scope(slug);
+CREATE INDEX IF NOT EXISTS idx_scopes_id ON scopes(id);
+CREATE INDEX IF NOT EXISTS idx_scopes_created_at ON scopes(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_application_scope_id ON application_scope(id);
 CREATE INDEX IF NOT EXISTS idx_application_scope_created_at ON application_scope(created_at);
 
 CREATE INDEX IF NOT EXISTS idx_services_application_id ON services(application_id);
@@ -53,19 +65,24 @@ BEGIN
 
     SELECT id INTO super_user_id FROM users WHERE email = 'super-user@gmail.com';
 
-    INSERT INTO application_scope (slug, name, created_by, updated_by, created_at, updated_at)
-    VALUES ('public', 'Public', super_user_id, super_user_id, current_epoch_time, current_epoch_time),
-    ('internal', 'Internal', super_user_id, super_user_id, current_epoch_time, current_epoch_time),
-    ('protected', 'Protected', super_user_id, super_user_id, current_epoch_time, current_epoch_time);
+    INSERT INTO scopes (slug, name, created_at, updated_at)
+    VALUES ('public', 'Public', current_epoch_time, current_epoch_time),
+    ('internal', 'Internal', current_epoch_time, current_epoch_time),
+    ('protected', 'Protected', current_epoch_time, current_epoch_time);
 
     INSERT INTO applications (slug, name, is_active, created_by, updated_by, created_at, updated_at)
     VALUES ('apollo', 'Apollo', true, super_user_id, super_user_id, current_epoch_time, current_epoch_time)
     RETURNING id INTO app_id;
 
-    INSERT INTO user_applications (user_id, application_id, scope_id)
-    VALUES (super_user_id, app_id, (SELECT id AS scope_id FROM application_scope WHERE slug = 'public')),
-    (super_user_id, app_id, (SELECT id AS scope_id FROM application_scope WHERE slug = 'internal')),
-    (super_user_id, app_id, (SELECT id AS scope_id FROM application_scope WHERE slug = 'protected'));
+    INSERT INTO application_scope (application_id, scope_id, is_active, created_by, updated_by, created_at, updated_at)
+    VALUES (app_id, (SELECT id AS scope_id FROM scopes WHERE slug = 'public'), true, super_user_id, super_user_id, current_epoch_time, current_epoch_time),
+           (app_id, (SELECT id AS scope_id FROM scopes WHERE slug = 'internal'), true, super_user_id, super_user_id, current_epoch_time, current_epoch_time),
+           (app_id, (SELECT id AS scope_id FROM scopes WHERE slug = 'protected'), true, super_user_id, super_user_id, current_epoch_time, current_epoch_time);
+
+    INSERT INTO user_applications (user_id, application_scope_id)
+    VALUES (super_user_id, (SELECT app_scope.id AS application_scope_id FROM application_scope AS app_scope JOIN scopes AS s ON app_scope.scope_id = s.id WHERE s.slug = 'public')),
+           (super_user_id, (SELECT app_scope.id AS application_scope_id FROM application_scope AS app_scope JOIN scopes AS s ON app_scope.scope_id = s.id WHERE s.slug = 'internal')),
+           (super_user_id, (SELECT app_scope.id AS application_scope_id FROM application_scope AS app_scope JOIN scopes AS s ON app_scope.scope_id = s.id WHERE s.slug = 'protected'));
 
     UPDATE services SET application_id = app_id WHERE id = 1;
     UPDATE services SET application_id = app_id WHERE id = 2;

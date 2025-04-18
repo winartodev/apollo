@@ -63,8 +63,39 @@ func (ah *ApplicationHandler) GetApplications(ctx *fiber.Ctx) error {
 	return responses.SuccessResponseWithPaginate(ctx, fiber.StatusOK, resp, total, paginateData, nil)
 }
 
+func (ah *ApplicationHandler) Create(ctx *fiber.Ctx) error {
+	_, err := helpers.GetUserIDFromFiberContext(ctx)
+	if err != nil {
+		return responses.FailedResponseV2(ctx, errors.AuthorizationErr.WithReason(err.Error()))
+	}
+
+	access, ctxErr := helpers.GetApplicationAccessFromFiberContext(ctx)
+	if ctxErr != nil {
+		return responses.FailedResponseV2(ctx, errors.AuthorizationErr.WithReason(ctxErr.Error()))
+	}
+
+	if access == nil || !reflect.DeepEqual(access, application.ApolloInternal) {
+		return responses.FailedResponseV2(ctx, errors.UserApplicationHasNotAccess)
+	}
+
+	data := applicationEntity.Application{}
+	err = ctx.BodyParser(&data)
+	if err != nil {
+		return responses.FailedResponseV2(ctx, errors.FailedParseRequestBodyErr.WithReason(err.Error()))
+	}
+
+	context := ctx.Context()
+	resp, errResp := ah.ApplicationController.CreateApplication(context, data)
+	if errResp != nil {
+		return responses.FailedResponseV2(ctx, errResp)
+	}
+
+	return responses.SuccessResponseV2(ctx, fiber.StatusCreated, resp, nil)
+}
+
 func (ah *ApplicationHandler) Register(router fiber.Router) error {
 	internal := router.Group(fmt.Sprintf(applicationsEndpoint, core.V1, core.AccessInternal), ah.HandleInternalAccess())
+	internal.Post("/", ah.Create)
 	internal.Get("/", ah.GetApplications)
 
 	return nil
