@@ -1,43 +1,43 @@
 package responses
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/winartodev/apollo/core"
+	"github.com/winartodev/apollo/core/errors"
 	"github.com/winartodev/apollo/core/helpers"
 )
 
 const (
-	statusSuccess = "Success"
-	statusFailed  = "Failed"
+	statusSuccess  = "Success"
+	statusFailed   = "Failed"
+	defaultMessage = "Your request has been processed successfully"
 )
 
-type Response struct {
-	Status   string      `json:"status"`
-	Message  string      `json:"message"`
-	Data     interface{} `json:"data,omitempty"`
-	Metadata interface{} `json:"metadata,omitempty"`
-	Error    string      `json:"error,omitempty"`
+type Header struct {
+	Status    string `json:"status,omitempty"`
+	Message   string `json:"message"`
+	Reason    string `json:"reason,omitempty"`
+	ErrorCode string `json:"error_code,omitempty"`
 }
 
-type PaginateResponse struct {
-	TotalItems  int64  `json:"total_items"`
-	TotalPages  int64  `json:"total_pages"`
-	CurrentPage int64  `json:"current_page"`
-	NextPage    *int64 `json:"next_page,omitempty"`
-	PrevPage    *int64 `json:"prev_page,omitempty"`
-	Links       struct {
-		First    string `json:"first,omitempty"`
-		Last     string `json:"last,omitempty"`
-		Next     string `json:"next,omitempty"`
-		Previous string `json:"previous,omitempty"`
-	} `json:"links,omitempty"`
+type Response struct {
+	Header   Header      `json:"header"`
+	Data     interface{} `json:"data"`
+	Metadata interface{} `json:"metadata"`
+}
+
+type MutateResponseData struct {
+	SuccessData     int         `json:"success_data"`
+	FailData        int         `json:"fail_data"`
+	SuccessRowsData interface{} `json:"success_rows_data,omitempty"`
+	FailedRowsData  interface{} `json:"failed_rows_data,omitempty"`
 }
 
 func SuccessResponse(c *fiber.Ctx, statusCode int, message string, data interface{}, metadata interface{}) error {
 	return c.Status(statusCode).JSON(Response{
-		Status:   statusSuccess,
-		Message:  message,
+		Header: Header{
+			Status:  statusSuccess,
+			Message: defaultMessage,
+		},
 		Data:     data,
 		Metadata: metadata,
 	})
@@ -50,75 +50,65 @@ func FailedResponse(c *fiber.Ctx, statusCode int, message string, err error) err
 	}
 
 	return c.Status(statusCode).JSON(Response{
-		Status:  statusFailed,
-		Message: message,
-		Error:   e,
+		Header: Header{
+			Status:  statusFailed,
+			Message: message,
+			Reason:  e,
+		},
+		Data: nil,
 	})
 }
-func generateLink(link string, page int64, limit int64) string {
-	if link == "" {
-		return ""
-	}
 
-	return fmt.Sprintf("%s?page=%d&limit=%d", link, page, limit)
+func SuccessResponseV2(c *fiber.Ctx, statusCode int, data interface{}, metadata interface{}) error {
+	return c.Status(statusCode).JSON(Response{
+		Header: Header{
+			Status:  statusSuccess,
+			Message: defaultMessage,
+		},
+		Data:     data,
+		Metadata: metadata,
+	})
 }
 
-func BuildPaginate(totalItems int64, link string, paginate *helpers.Paginate) *PaginateResponse {
-	var limit = *paginate.Limit
-	var page = *paginate.Offset
-
-	if page <= 0 {
-		page = core.DefaultPage
+func SuccessResponseWithPaginate(c *fiber.Ctx, statusCode int, data interface{}, totalItem int64, paginate *helpers.Paginate, metadata interface{}) error {
+	var paginateResponse helpers.PaginateResponse
+	paginationMetadata := paginateResponse.NewFromContext(c, totalItem, paginate)
+	finalMetadata := map[string]interface{}{
+		"pagination": paginationMetadata,
 	}
 
-	if limit < 1 || limit > core.MaxLimit {
-		limit = core.DefaultLimit
+	if metadata != nil {
+		if existingMetadata, ok := metadata.(map[string]interface{}); ok {
+			for key, value := range existingMetadata {
+				finalMetadata[key] = value
+			}
+		} else {
+			// Handle the case where the provided metadata is not a map
+			finalMetadata["additional_metadata"] = metadata
+		}
 	}
 
-	totalPages := (totalItems + limit - 1) / limit
+	return SuccessResponseV2(c, statusCode, data, finalMetadata)
+}
 
-	var nextPage, prevPage *int64
-	if page < totalPages {
-		nextPageVal := page + 1
-		nextPage = &nextPageVal
-	}
-
-	if page > 1 {
-		prevPageVal := page - 1
-		prevPage = &prevPageVal
-	}
-
-	firstLink := generateLink(link, 1, limit)
-	lastLink := generateLink(link, totalPages, limit)
-
-	var nextLink, prevLink string
-
-	if nextPage != nil {
-		nextLink = generateLink(link, *nextPage, limit)
-	}
-
-	if prevPage != nil {
-		prevLink = generateLink(link, *prevPage, limit)
-	}
-
-	result := PaginateResponse{
-		TotalItems:  totalItems,
-		TotalPages:  totalPages,
-		CurrentPage: page,
-		NextPage:    nextPage,
-		PrevPage:    prevPage,
-		Links: struct {
-			First    string `json:"first,omitempty"`
-			Last     string `json:"last,omitempty"`
-			Next     string `json:"next,omitempty"`
-			Previous string `json:"previous,omitempty"`
-		}{
-			First:    firstLink,
-			Last:     lastLink,
-			Next:     nextLink,
-			Previous: prevLink,
+func FailedResponseV2(c *fiber.Ctx, statusCode int, data interface{}) error {
+	return c.Status(statusCode).JSON(Response{
+		Header: Header{
+			Status:  statusSuccess,
+			Message: defaultMessage,
 		},
-	}
+		Data: data,
+	})
+}
 
-	return &result
+func FailedResponseWithError(c *fiber.Ctx, err errors.Errors) error {
+	var data = err.Error()
+	return c.Status(data.StatusCode).JSON(Response{
+		Header: Header{
+			Message:   data.Message,
+			Reason:    data.Reason,
+			ErrorCode: data.ErrorCode,
+		},
+		Data: nil,
+	})
 }

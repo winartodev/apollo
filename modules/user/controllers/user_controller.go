@@ -6,9 +6,10 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/winartodev/apollo/core"
+	cErrors "github.com/winartodev/apollo/core/errors"
 	"github.com/winartodev/apollo/core/helpers"
 	userEntity "github.com/winartodev/apollo/modules/user/entities"
-	userRepo "github.com/winartodev/apollo/modules/user/repositories"
+	repositories2 "github.com/winartodev/apollo/modules/user/repositories"
 	"time"
 )
 
@@ -24,15 +25,18 @@ type UserControllerItf interface {
 	GetPasswordByEmail(ctx context.Context, email string) (res *string, err error)
 	GetRefreshTokenByID(ctx context.Context, id int64) (res *string, err error)
 	ValidateUserIsExists(ctx context.Context, data *userEntity.User) (err error)
+	GetUserApplicationAccess(ctx context.Context, userID int64, applicationID int64, scopeID int64) (err cErrors.Errors)
 }
 
 type UserController struct {
-	UserRepository userRepo.UserRepositoryItf
+	UserRepository            repositories2.UserRepositoryItf
+	UserApplicationRepository repositories2.UserApplicationRepositoryItf
 }
 
 func NewUserController(controller UserController) UserControllerItf {
 	return &UserController{
-		UserRepository: controller.UserRepository,
+		UserRepository:            controller.UserRepository,
+		UserApplicationRepository: controller.UserApplicationRepository,
 	}
 }
 
@@ -131,6 +135,23 @@ func (uc *UserController) UpdateRefreshToken(ctx context.Context, force bool, id
 	err = uc.UserRepository.UpdateRefreshTokenByIDDB(ctx, id, refreshToken)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (uc *UserController) GetUserApplicationAccess(ctx context.Context, userID int64, applicationID int64, scopeID int64) (err cErrors.Errors) {
+	hasAccess, applicationActive, dbErr := uc.UserApplicationRepository.GetUserApplicationAccessDB(ctx, userID, applicationID, scopeID)
+	if dbErr != nil {
+		return cErrors.InternalServerErr(dbErr.Error())
+	}
+
+	if !applicationActive {
+		return cErrors.ApplicationInactiveErr
+	}
+
+	if !hasAccess {
+		return cErrors.UserApplicationHasNotAccess
 	}
 
 	return nil

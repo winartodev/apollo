@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/winartodev/apollo/core"
+	"github.com/winartodev/apollo/modules/application"
 	userEntity "github.com/winartodev/apollo/modules/user/entities"
 	"os"
 	"strings"
@@ -22,9 +23,10 @@ var (
 )
 
 type JWTClaims struct {
-	ID       int64  `json:"id,omitempty"`
-	Username string `json:"username,omitempty"`
-	Email    string `json:"email,omitempty"`
+	ID       int64               `json:"id,omitempty"`
+	Username string              `json:"username,omitempty"`
+	Email    string              `json:"email,omitempty"`
+	Access   *application.Access `json:"access,omitempty"`
 	jwt.StandardClaims
 }
 
@@ -67,7 +69,7 @@ func NewJWT() (*JWT, error) {
 	}, nil
 }
 
-func (j *JWT) GenerateToken(user *userEntity.User) (result *JWTResponse, err error) {
+func (j *JWT) GenerateToken(user *userEntity.User, access *application.Access) (result *JWTResponse, err error) {
 	if user == nil {
 		return nil, errors.New("user not found")
 	}
@@ -80,13 +82,15 @@ func (j *JWT) GenerateToken(user *userEntity.User) (result *JWTResponse, err err
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
+		Access:   access,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(15 * time.Minute).Unix(),
 		},
 	})
 
 	newRefreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, JWTClaims{
-		ID: user.ID,
+		ID:     user.ID,
+		Access: access,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 		},
